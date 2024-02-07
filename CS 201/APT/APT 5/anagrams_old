@@ -1,0 +1,63 @@
+import java.util.*;
+
+public class Aaagmnrs {
+
+    public Boolean checkIfAnagramAlreadyExists(List<HashMap<Character,Integer>> listOfCharFreq2, HashMap<Character,Integer> thisFreq) {
+        
+
+        for (int i = 0; i < listOfCharFreq2.size()-1; i++) {
+
+            for (Character key : thisFreq.keySet()) {
+                if (listOfCharFreq2.get(i).containsKey(key) ) {
+                    if (!listOfCharFreq2.get(i).get(key).equals(thisFreq.get(key))) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    public String[] anagrams(String[] phrases) {
+        // fill in code here
+
+        List<String> returnList = new ArrayList<>();
+
+        List<HashMap<Character,Integer>> listOfCharFreq = new ArrayList<>();
+        
+
+        for (int i = 0; i < phrases.length; i++) {
+            char[] phraseCharArray = phrases[i].toLowerCase().toCharArray();
+            listOfCharFreq.add(new HashMap<>());
+
+            //creates char array of phrase
+            for (char letter : phraseCharArray) {
+                if (listOfCharFreq.get(i).containsKey(letter)) {
+                    listOfCharFreq.get(i).put(letter, listOfCharFreq.get(i).get(letter) + 1);
+                } else {
+                    listOfCharFreq.get(i).put(letter, 1);
+                }
+            }
+
+            //check if freq exists
+
+            if (checkIfAnagramAlreadyExists(listOfCharFreq, listOfCharFreq.get(i)))  {
+                returnList.add(phrases[i]);
+            }
+
+        }
+
+        String[] returnArray = new String[returnList.size()];
+
+        for (int i = 0; i < returnArray.length; i++) {
+            returnArray[i] = returnList.get(i);
+        }
+
+        return returnArray;
+    }
+
+ }
