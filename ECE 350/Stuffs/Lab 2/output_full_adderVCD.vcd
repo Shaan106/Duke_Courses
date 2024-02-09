@@ -1,0 +1,72 @@
+$date
+	Fri Jan 26 10:32:10 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	100ps
+$end
+$scope module NAND_1bitAdder_tb $end
+$var wire 1 ! Sout $end
+$var wire 1 " Cout $end
+$var reg 1 # A $end
+$var reg 1 $ B $end
+$var reg 1 % Cin $end
+$scope module nand_adder $end
+$var wire 1 # A $end
+$var wire 1 $ B $end
+$var wire 1 % Cin $end
+$var wire 1 " Cout $end
+$var wire 1 ! Sout $end
+$var wire 1 & w1 $end
+$var wire 1 ' w2 $end
+$var wire 1 ( w3 $end
+$var wire 1 ) w4 $end
+$var wire 1 * w5 $end
+$var wire 1 + w6 $end
+$var wire 1 , w7 $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+1,
+1+
+x*
+x)
+x(
+1'
+1&
+0%
+0$
+0#
+0"
+x!
+$end
+#100
+1!
+0*
+1)
+0'
+1#
+#200
+x!
+x*
+x)
+1'
+0#
+1$
+#300
+0!
+1*
+1(
+1"
+0)
+0&
+1'
+1#
+#400

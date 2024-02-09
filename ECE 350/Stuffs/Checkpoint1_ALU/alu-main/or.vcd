@@ -1,0 +1,146 @@
+$date
+	Wed Jan 24 23:02:02 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	100ps
+$end
+$scope module alu_tb $end
+$var wire 1 ! LT $end
+$var wire 1 " NE $end
+$var wire 1 # OVF $end
+$var wire 32 $ Res [31:0] $end
+$var reg 32 % A [31:0] $end
+$var reg 5 & ALU_OP [4:0] $end
+$var reg 32 ' B [31:0] $end
+$var reg 1 ( ExpLT $end
+$var reg 1 ) ExpNE $end
+$var reg 1 * ExpOVF $end
+$var reg 32 + ExpRes [31:0] $end
+$var reg 5 , Shift_Amt [4:0] $end
+$var reg 128 - actFileName [127:0] $end
+$var reg 128 . diffFileName [127:0] $end
+$var reg 128 / expFileName [127:0] $end
+$var reg 128 0 testName [127:0] $end
+$var integer 32 1 actFile [31:0] $end
+$var integer 32 2 diffFile [31:0] $end
+$var integer 32 3 errors [31:0] $end
+$var integer 32 4 expFile [31:0] $end
+$var integer 32 5 expScan [31:0] $end
+$var integer 32 6 tests [31:0] $end
+$scope module Tester $end
+$var wire 5 7 ctrl_ALUopcode [4:0] $end
+$var wire 5 8 ctrl_shiftamt [4:0] $end
+$var wire 32 9 data_operandA [31:0] $end
+$var wire 32 : data_operandB [31:0] $end
+$var wire 1 ! isLessThan $end
+$var wire 1 " isNotEqual $end
+$var wire 1 # overflow $end
+$var wire 32 ; data_result [31:0] $end
+$scope module bitOr $end
+$var wire 32 < operandA [31:0] $end
+$var wire 32 = operandB [31:0] $end
+$var wire 32 > oredNum [31:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$scope module alu_tb $end
+$scope module Tester $end
+$scope module bitOr $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b10111 >
+b1 =
+b10111 <
+b10111 ;
+b1 :
+b10111 9
+b0 8
+b10 7
+b0 6
+b1000 5
+b10000000000000000000000000000011 4
+b0 3
+b10000000000000000000000000000101 2
+b10000000000000000000000000000100 1
+b110111101110010 0
+b1101111011100100101111101100101011110000111000000101110011000110111001101110110 /
+b110111101110010010111110110010001101001011001100110011000101110011000110111001101110110 .
+b1101111011100100101111101100001011000110111010001110101011000010110110000101110011000110111001101110110 -
+b0 ,
+b10111 +
+0*
+0)
+0(
+b1 '
+b10 &
+b10111 %
+b10111 $
+z#
+z"
+z!
+$end
+#100
+b1 ,
+b1 8
+b10 '
+b10 :
+b10 =
+b1 6
+#200
+b10 ,
+b10 8
+b110 '
+b110 :
+b110 =
+b10 6
+#300
+b11111 $
+b11111 ;
+b11111 >
+b11111 +
+b11 ,
+b11 8
+b1000 '
+b1000 :
+b1000 =
+b11 6
+#400
+b10111 $
+b10111 ;
+b10111 >
+b10111 +
+b100 ,
+b100 8
+b10001 '
+b10001 :
+b10001 =
+b100 6
+#500
+b110111 $
+b110111 ;
+b110111 >
+b110111 +
+b101 ,
+b101 8
+b100000 '
+b100000 :
+b100000 =
+b101 6
+#600
+b110 ,
+b110 8
+b110 6
+#700
+b11111111111111111111111111111111 5
+b111 6
+#1700

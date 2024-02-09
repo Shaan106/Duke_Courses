@@ -1,0 +1,8 @@
+A, B, ALU OP, Shift Amount, Result, isNE, isLT, OVF
+         23,          1, 2, 0,         23,z,z,z
+         23,          2, 2, 1,         23,z,z,z
+         23,          6, 2, 2,         23,z,z,z
+         23,          8, 2, 3,         31,z,z,z
+         23,         17, 2, 4,         23,z,z,z
+         23,         32, 2, 5,         55,z,z,z
+         23,         32, 2, 6,         55,z,z,z
