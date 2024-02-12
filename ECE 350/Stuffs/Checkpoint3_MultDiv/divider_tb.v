@@ -4,7 +4,7 @@ module divider_tb;
 
     reg [31:0] data_operandA, data_operandB;
     reg clock, ctrl_DIV;
-    wire [31:0] data_result;
+    wire [31:0] data_quotient, data_remainder;
     wire data_exception, data_resultRDY;
     wire [5:0] counter;
 
@@ -14,7 +14,8 @@ module divider_tb;
         .data_operandB(data_operandB),
         .clock(clock),
         .ctrl_DIV(ctrl_DIV),
-        .data_result(data_result),
+        .data_quotient(data_quotient),
+        .data_remainder(data_remainder),
         .data_exception(data_exception),
         .data_resultRDY(data_resultRDY),
         .counter(counter)
@@ -39,7 +40,7 @@ module divider_tb;
         ctrl_DIV = 0;
 
         // Test case 1: Divide 100 by 3
-        data_operandA = 7;
+        data_operandA = 101;
         data_operandB = 3;
         ctrl_DIV = 1; // Start new division
         #10;

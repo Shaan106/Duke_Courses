@@ -1,29 +1,29 @@
 module divider_called_bob(
     data_operandA, data_operandB, 
     clock, ctrl_DIV,
-    data_result, data_exception, data_resultRDY, counter);
+    data_quotient, data_remainder, data_exception, data_resultRDY);
 
     input [31:0] data_operandA, data_operandB;
     input clock;
     input ctrl_DIV; // when this is 1, reset counter to start division.
 
-    output [31:0] data_result;
+    output [31:0] data_quotient, data_remainder;
     output data_exception, data_resultRDY;
 
     // exceptions
 
     // Inside the divider_called_bob module
-    always @(posedge clock) begin
-        if (ctrl_DIV) $display("Reset activated at time %t", $time);
-        $display("OperandA = %d, OperandB = %d, Result = %d, Exception = %b, remainder = %d, Counter = %d, rqLoop = %b",
-                data_operandA, data_operandB, data_result, data_exception, remainder_quotient_out[63:32], counter, remainder_quotient_out);
-    end
+    // always @(posedge clock) begin
+    //     if (ctrl_DIV) $display("Reset activated at time %t", $time);
+    //     $display("OperandA = %d, OperandB = %d, Result = %d, ready? = %b, remainder = %d, Counter = %d, rqLoop = %b",
+    //             data_operandA, data_operandB, data_quotient, data_resultRDY, data_remainder, counter, remainder_quotient_out);
+    // end
 
     // have not returned proper remainder because need to do final +D after cycle 33.
 
     //---------------------------COUNTER COUNTER---------------------------
-    // wire[5:0] counter;
-    output[5:0] counter;
+    wire[5:0] counter;
+    //output[5:0] counter;
     counter my_counter_is_faster(.clock(clock), .reset(ctrl_DIV), .count(counter));
 
     //-------------------------- cycle 0 setup initial -------------------
@@ -91,17 +91,32 @@ module divider_called_bob(
     assign remainder_quotient_loop[0] = ~(remainder_quotient_loop[63]);
 
 
-
     // ----------------- FINAL outputs - Quotient ready cycle 33, Remainder cycle 34/35 ------------------------
 
-    
+    wire[63:0] tempFinalOutput, ratatouille; //ratatouille is my output dish. I don't actually like ratatouille much, but I like the movie.
 
-    assign data_result = remainder_quotient_out[31:0];
+    assign tempFinalOutput = remainder_quotient_in;
+
+    single_reg_64 peregrine_falcon(.q(ratatouille), .d(tempFinalOutput), .clk(clock), .en(counter[5] & ~counter[4] & ~counter[3] & ~counter[2] & ~counter[1] & ~counter[0]), .clr(ctrl_DIV)); //write on clock cycle 33
+
+    assign data_quotient = ratatouille[31:0];
+
+    // assign data_remainder = ratatouille[63:32];
+    
+    // if MSB = 1 then add D o/w done
+    wire[31:0] wireOne, wireTwo;
+
+    assign wireTwo = ratatouille[63:32];
+
+    adder by_jupiter(.out(wireOne), .operandA(ratatouille[63:32]), .operandB(divisor), .carry_in(1'b0));
+
+    mux_2 choosinator3000(.out(data_remainder), .select(ratatouille[63]), .in0(wireTwo), .in1(wireOne));
 
     assign data_exception = ~(|data_operandB);
 
+    wire tossIt;
 
-    //
+    T_flip_flop numberOne   (.T((counter[5] & ~counter[4] & ~counter[3] & ~counter[2] & ~counter[1] & counter[0]) | (counter[5] & counter[4] & counter[3] & counter[2] & counter[1] & counter[0])), .clock(clock), .reset(ctrl_DIV), .Q(data_resultRDY), .notQ(tossIt));
 
 
 endmodule

@@ -13,6 +13,7 @@ output data_exception, data_resultRDY;
 
 assign data_resultRDY = 1'b1;
 
+
 wire [63:0] data_result;
       
 // BASE CASE BASE CASE
