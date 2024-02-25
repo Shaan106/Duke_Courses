@@ -1,5 +1,3 @@
-
-
 module wallaceTreeMultiplier(
 data_operandA, data_operandB, 
 clock, 
