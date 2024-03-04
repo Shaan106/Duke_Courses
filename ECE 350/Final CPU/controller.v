@@ -1,4 +1,4 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -7,6 +7,7 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output regWriteEnable;
     output ALUinIMM;
     output RAM_WE, RAM_rd_write;
+    output read_from_RAM;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -63,16 +64,19 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     //operationSelected[5] is addi
 
     // regfile write enable
-    assign regWriteEnable = ALU | addi; 
+    assign regWriteEnable = ALU | addi | lw; 
 
     // is ALU data B in immidiate wire
-    assign ALUinIMM = addi | sw;
+    assign ALUinIMM = addi | sw | lw;
 
     // RAM write enable
     assign RAM_WE = sw;
 
     // is write data for RAM in rd control
     assign RAM_rd_write = sw;
+
+    // is the read data from RAM
+    assign read_from_RAM = lw;
 
 
 endmodule

@@ -130,9 +130,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -199,6 +199,7 @@ module processor(
     assign controller_controls[16:12] = rd; //destination register
     assign controller_controls[17] = RAM_rd_write; //RAM read/write
     assign controller_controls[18] = RAM_WE; //RAM write enable
+    assign controller_controls[19] = read_from_RAM; //read from RAM
 
     single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
@@ -298,7 +299,8 @@ module processor(
     // wire regWriteEnable;
 
     //control signal below, for now always write data from ALU
-    mux_2 regWriteDataMux(.out(regWriteData), .select(1'b0), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
+    mux_2 regWriteDataMux(.out(regWriteData), .select(MW_controls[19]), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
+    // mux_2 regWriteDataMux(.out(regWriteData), .select(1'b0), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
 
     // write to destination register
     assign regWriteID = MW_controls[16:12]; //destination register
