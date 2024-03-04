@@ -40,7 +40,6 @@ module processor(
     data_writeReg,                  // O: Data to write to for RegFile
     data_readRegA,                  // I: Data from port A of RegFile
     data_readRegB                   // I: Data from port B of RegFile
-	 
 	);
 
 	// Control signals
@@ -131,9 +130,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -198,6 +197,8 @@ module processor(
     assign controller_controls[6:2] = alu_op_modified; // ALU operation (fixed via controller)
     assign controller_controls[11:7] = shamt; //shift amount
     assign controller_controls[16:12] = rd; //destination register
+    assign controller_controls[17] = RAM_rd_write; //RAM read/write
+    assign controller_controls[18] = RAM_WE; //RAM write enable
 
     single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
@@ -253,14 +254,16 @@ module processor(
     wire[31:0] RAM_data_for_write;
 
     assign RAM_address_for_write = XM_ALU_output; //RAM location to write to
-    assign RAM_data_for_write = XM_rt_data; //data to write to RAM
+
+    //data to write to RAM
+    mux_2 RAM_data_mux(.out(RAM_data_for_write), .select(XM_controls[17]), .in0(XM_rt_data), .in1(XM_controls[16:12]));
 
     //below lines are input to RAM
     assign address_dmem = RAM_address_for_write;
     assign data = RAM_data_for_write;
 
     //write enable control, need to implement.
-    assign wren = 1'b0; // <---------------------- check this control signal
+    assign wren = XM_controls[18]; //RAM write enable
 
     //result from RAM is stored in q_dmem
     wire[31:0] RAM_data_out;
@@ -307,5 +310,4 @@ module processor(
 //---------- Writeback ----------
 
 	/* END CODE */
-
 endmodule
