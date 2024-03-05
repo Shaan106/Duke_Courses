@@ -1,4 +1,4 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -10,6 +10,8 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output read_from_RAM;
     output jump_direct;
     output read_rd;
+    output ctrl_bne;
+    output jal_write;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -66,7 +68,7 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     //operationSelected[5] is addi
 
     // regfile write enable
-    assign regWriteEnable = ALU | addi | lw; 
+    assign regWriteEnable = ALU | addi | lw | jal; 
 
     // is ALU data B in immidiate wire
     assign ALUinIMM = addi | sw | lw;
@@ -81,10 +83,16 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     assign read_from_RAM = lw;
 
     // controls whether to set the PC to the target address from j T instruction
-    assign jump_direct = jump;
+    assign jump_direct = jump | jal;
 
     // controls whether the second register read is rd (or left as rt)
     assign read_rd = sw | bne;
+
+    // control alongside isNE, to make sure doesnt branch accidentally
+    assign ctrl_bne = bne;
+
+    // control for jal to write into $r31
+    assign jal_write = jal;
 
 
 endmodule

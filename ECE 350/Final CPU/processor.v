@@ -91,7 +91,7 @@ module processor(
     wire[31:0] temp_PC_1;
     mux_2 jump_target_mux(.out(temp_PC_1), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
 
-    mux_2 bne_mux(.out(PC_modified), .select(isNE), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
+    mux_2 bne_mux(.out(PC_modified), .select((isNE & DX_controls[17])), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
 
     //giving current PC location to ROM, which returns next intruction to be executed
     assign address_imem = PC; 
@@ -128,9 +128,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd), .ctrl_bne(ctrl_bne), .jal_write(jal_write)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -208,9 +208,11 @@ module processor(
     assign controller_controls[11:7] = shamt; //shift amount
     assign controller_controls[16:12] = rd; //destination register
     //assign controller_controls[17] = RAM_rd_write; //RAM read/write THIS IS OBSOLETE
+    assign controller_controls[17] = ctrl_bne; //branch not equal
     assign controller_controls[18] = RAM_WE; //RAM write enable
     assign controller_controls[19] = read_from_RAM; //read from RAM
     assign controller_controls[20] = jump_direct; //jump direct
+    assign controller_controls[21] = jal_write; //jump and link write
 
     single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
@@ -241,6 +243,11 @@ module processor(
     wire[31:0] DX_PC_plus_one_plus_N;
     adder DX_PC_plus_1_plus_N(.out(DX_PC_plus_one_plus_N), .operandA(DX_PC_plus_one), .operandB(DX_immidiate), .carry_in(1'b0));
 
+    //whether to write into #r31
+
+    wire[31:0] ALU_or_jal;
+    mux_2 jal_mux(.out(ALU_or_jal), .select(DX_controls[21]), .in0(ALU_output), .in1(DX_PC_plus_one));
+
 
     //address for jump
     wire[31:0] jump_address;
@@ -258,7 +265,7 @@ module processor(
 
     // this is equivalent of O
     wire[31:0] XM_ALU_output;
-    single_reg XM_latch_DataWriteLocation(.q(XM_ALU_output), .d(ALU_output), .clk(n_clock), .en(1'b1), .clr(reset));
+    single_reg XM_latch_DataWriteLocation(.q(XM_ALU_output), .d(ALU_or_jal), .clk(n_clock), .en(1'b1), .clr(reset));
 
     // this is equivalent of B
     wire[31:0] XM_rt_data;
@@ -329,7 +336,9 @@ module processor(
     // mux_2 regWriteDataMux(.out(regWriteData), .select(1'b0), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
 
     // write to destination register
-    assign regWriteID = MW_controls[16:12]; //destination register
+    // assign regWriteID = MW_controls[16:12]; //destination register
+
+    assign regWriteID = (MW_controls[21]) ? 5'b11111 : MW_controls[16:12];
 
     // enable register write
     assign regWriteEnable = MW_controls[0]; //register write enable
