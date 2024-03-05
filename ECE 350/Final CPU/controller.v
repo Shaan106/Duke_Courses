@@ -1,4 +1,4 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -12,6 +12,8 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output read_rd;
     output ctrl_bne;
     output jal_write;
+    output jr_PC_update;
+    output ctrl_blt;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -86,13 +88,19 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     assign jump_direct = jump | jal;
 
     // controls whether the second register read is rd (or left as rt)
-    assign read_rd = sw | bne;
+    assign read_rd = sw | bne | jr | blt;
 
     // control alongside isNE, to make sure doesnt branch accidentally
     assign ctrl_bne = bne;
 
     // control for jal to write into $r31
     assign jal_write = jal;
+
+    // control for jr to update PC
+    assign jr_PC_update = jr;
+
+    // control for blt
+    assign ctrl_blt = blt;
 
 
 endmodule

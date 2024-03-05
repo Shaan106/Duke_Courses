@@ -91,7 +91,10 @@ module processor(
     wire[31:0] temp_PC_1;
     mux_2 jump_target_mux(.out(temp_PC_1), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
 
-    mux_2 bne_mux(.out(PC_modified), .select((isNE & DX_controls[17])), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
+    wire[31:0] temp_PC_2;
+    mux_2 bne_mux(.out(temp_PC_2), .select( (isNE & DX_controls[17]) | (bltCheck & DX_controls[23])), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
+
+    mux_2 jr_PC_mux(.out(PC_modified), .select(DX_controls[22]), .in0(temp_PC_2), .in1(DX_rt_data));
 
     //giving current PC location to ROM, which returns next intruction to be executed
     assign address_imem = PC; 
@@ -128,9 +131,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd), .ctrl_bne(ctrl_bne), .jal_write(jal_write)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd), .ctrl_bne(ctrl_bne), .jal_write(jal_write), .jr_PC_update(jr_PC_update), .ctrl_blt(ctrl_blt)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -213,6 +216,8 @@ module processor(
     assign controller_controls[19] = read_from_RAM; //read from RAM
     assign controller_controls[20] = jump_direct; //jump direct
     assign controller_controls[21] = jal_write; //jump and link write
+    assign controller_controls[22] = jr_PC_update; //jump register PC update
+    assign controller_controls[23] = ctrl_blt; //branch less than
 
     single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
@@ -252,6 +257,10 @@ module processor(
     //address for jump
     wire[31:0] jump_address;
     assign jump_address = DX_target;
+
+    //branch less than check
+    wire bltCheck;
+    assign bltCheck = (isNE) & !(isLT);
 
     assign DX_controls[31] = isOV; //overflow
     assign DX_controls[30] = isLT; //less than
