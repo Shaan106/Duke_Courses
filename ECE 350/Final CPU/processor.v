@@ -87,12 +87,11 @@ module processor(
 
     //MUX to choose final PC_modified
 
-
-    //choosing which PC to use for next cycle
-    mux_2 PC_mux(.out(PC_modified), .select(ctrl_branch), .in0(PC_plus1), .in1(branch_address));
-
     //jump target mux
-    mux_2 jump_target_mux(.out(PC_modified), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
+    wire[31:0] temp_PC_1;
+    mux_2 jump_target_mux(.out(temp_PC_1), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
+
+    mux_2 bne_mux(.out(PC_modified), .select(isNE), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
 
     //giving current PC location to ROM, which returns next intruction to be executed
     assign address_imem = PC; 
@@ -129,9 +128,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -147,7 +146,19 @@ module processor(
     
     assign ctrl_writeEnable = regWriteEnable; //In writeback stage
     assign ctrl_readRegA = rs; // current rgeA to read from
-    assign ctrl_readRegB = rt; // current regB to read from
+
+    wire[31:0] regB_to_read_32; //choosing whether to read from rt or rd
+    wire[31:0] rt_32, rd_32;
+    assign rt_32[4:0] = rt;
+    assign rd_32[4:0] = rd;
+
+    mux_2 regB_mux(.out(regB_to_read_32), .select(read_rd), .in0(rt_32), .in1(rd_32));
+
+    //moving around wires to make 32 bit mux work
+    wire[4:0] regB_to_read;
+    assign regB_to_read[4:0] = regB_to_read_32[4:0];
+
+    assign ctrl_readRegB = regB_to_read; // current regB to read from
 
     assign ctrl_writeReg = regWriteID; // which register to write to (from MW stage)
     assign data_writeReg = regWriteData; // this wire is from WM stage with data to write into regfile
@@ -172,7 +183,7 @@ module processor(
     single_reg DX_latch_regAData(.q(DX_rs_data), .d(value_rs), .clk(n_clock), .en(1'b1), .clr(reset)); 
 
     //storing regBData in latch
-    wire[31:0] DX_rt_data;
+    wire[31:0] DX_rt_data; // can contain rt data is read_rd is true (which it is in case of bne)
     single_reg DX_latch_regBData(.q(DX_rt_data), .d(value_rt), .clk(n_clock), .en(1'b1), .clr(reset)); 
 
     //storing immidiate in latch
@@ -196,7 +207,7 @@ module processor(
     assign controller_controls[6:2] = alu_op_modified; // ALU operation (fixed via controller)
     assign controller_controls[11:7] = shamt; //shift amount
     assign controller_controls[16:12] = rd; //destination register
-    assign controller_controls[17] = RAM_rd_write; //RAM read/write
+    //assign controller_controls[17] = RAM_rd_write; //RAM read/write THIS IS OBSOLETE
     assign controller_controls[18] = RAM_WE; //RAM write enable
     assign controller_controls[19] = read_from_RAM; //read from RAM
     assign controller_controls[20] = jump_direct; //jump direct
@@ -220,6 +231,16 @@ module processor(
     wire[31:0] ALU_output;
     wire isNE, isLT, isOV;
     alu deceptivelyAwesomeALU(.data_operandA(ALU_inA), .data_operandB(ALU_inB), .ctrl_ALUopcode(DX_controls[6:2]), .ctrl_shiftamt(DX_controls[11:7]), .data_result(ALU_output), .isNotEqual(isNE), .isLessThan(isLT), .overflow(isOV));
+
+    //this is for bne, calculating PC + 1 + immidiate
+        //PC + 1
+    wire[31:0] DX_PC_plus_one;
+    adder DX_PC_plus_1(.out(DX_PC_plus_one), .operandA(DX_PC), .operandB(32'b1), .carry_in(1'b0));
+
+        //PC + 1 + immidiate
+    wire[31:0] DX_PC_plus_one_plus_N;
+    adder DX_PC_plus_1_plus_N(.out(DX_PC_plus_one_plus_N), .operandA(DX_PC_plus_one), .operandB(DX_immidiate), .carry_in(1'b0));
+
 
     //address for jump
     wire[31:0] jump_address;
@@ -260,10 +281,12 @@ module processor(
     assign RAM_address_for_write = XM_ALU_output; //RAM location to write to
 
     //data to write to RAM
-    mux_2 RAM_data_mux(.out(RAM_data_for_write), .select(XM_controls[17]), .in0(XM_rt_data), .in1(XM_controls[16:12]));
+    // mux_2 RAM_data_mux(.out(RAM_data_for_write), .select(XM_controls[17]), .in0(XM_rt_data), .in1(XM_controls[16:12]));
 
     //below lines are input to RAM
     assign address_dmem = RAM_address_for_write;
+
+    assign RAM_data_for_write = XM_rt_data; // this contains rd during store word
     assign data = RAM_data_for_write;
 
     //write enable control, need to implement.
