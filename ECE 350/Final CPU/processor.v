@@ -87,13 +87,12 @@ module processor(
 
     //MUX to choose final PC_modified
 
-    wire[31:0] branch_address;
-    wire ctrl_branch;
-
-    assign ctrl_branch = 1'b0; // <---------------------- check this control signal
 
     //choosing which PC to use for next cycle
     mux_2 PC_mux(.out(PC_modified), .select(ctrl_branch), .in0(PC_plus1), .in1(branch_address));
+
+    //jump target mux
+    mux_2 jump_target_mux(.out(PC_modified), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
 
     //giving current PC location to ROM, which returns next intruction to be executed
     assign address_imem = PC; 
@@ -130,9 +129,9 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -200,6 +199,7 @@ module processor(
     assign controller_controls[17] = RAM_rd_write; //RAM read/write
     assign controller_controls[18] = RAM_WE; //RAM write enable
     assign controller_controls[19] = read_from_RAM; //read from RAM
+    assign controller_controls[20] = jump_direct; //jump direct
 
     single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
@@ -209,7 +209,6 @@ module processor(
 
 
 //---------- Execute ----------
-
 
     // ALU operations
     wire[31:0] ALU_inA, ALU_inB;
@@ -221,6 +220,10 @@ module processor(
     wire[31:0] ALU_output;
     wire isNE, isLT, isOV;
     alu deceptivelyAwesomeALU(.data_operandA(ALU_inA), .data_operandB(ALU_inB), .ctrl_ALUopcode(DX_controls[6:2]), .ctrl_shiftamt(DX_controls[11:7]), .data_result(ALU_output), .isNotEqual(isNE), .isLessThan(isLT), .overflow(isOV));
+
+    //address for jump
+    wire[31:0] jump_address;
+    assign jump_address = DX_target;
 
     assign DX_controls[31] = isOV; //overflow
     assign DX_controls[30] = isLT; //less than

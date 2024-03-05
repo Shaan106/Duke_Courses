@@ -1,4 +1,4 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -8,6 +8,7 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output ALUinIMM;
     output RAM_WE, RAM_rd_write;
     output read_from_RAM;
+    output jump_direct;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -77,6 +78,9 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
 
     // is the read data from RAM
     assign read_from_RAM = lw;
+
+    // controls whether to set the PC to the target address from j T instruction
+    assign jump_direct = jump;
 
 
 endmodule
