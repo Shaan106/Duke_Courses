@@ -78,6 +78,10 @@ module processor(
     wire[31:0] PC; //current PC out of PC register
     wire[31:0] PC_modified; // This is either PC + 1 or branch address
 
+    //flushing control for branches
+    wire isBranchTaken;
+    assign isBranchTaken = (DX_controls[22]) | (isNE & DX_controls[17]) | (bltCheck & DX_controls[23]) | (DX_controls[20]) | (isNE & DX_controls[25]);
+
     //PC register
     single_reg PC_reg(.q(PC), .d(PC_modified), .clk(n_clock), .en(1'b1), .clr(reset)); 
 
@@ -89,7 +93,7 @@ module processor(
 
     //jump target mux
     wire[31:0] temp_PC_1;
-    mux_2 jump_target_mux(.out(temp_PC_1), .select(DX_controls[20]), .in0(PC_plus1), .in1(jump_address));
+    mux_2 jump_target_mux(.out(temp_PC_1), .select((DX_controls[20])|(isNE & DX_controls[25])), .in0(PC_plus1), .in1(jump_address));
 
     wire[31:0] temp_PC_2;
     mux_2 bne_mux(.out(temp_PC_2), .select( (isNE & DX_controls[17]) | (bltCheck & DX_controls[23])), .in0(temp_PC_1), .in1(DX_PC_plus_one_plus_N));
@@ -111,10 +115,14 @@ module processor(
     wire [31:0] FD_PC, FD_Instruction;
 
     //storing PC + 1 in latch
-    single_reg FD_latch_PC(.q(FD_PC), .d(PC), .clk(n_clock), .en(1'b1), .clr(reset)); 
+    single_reg FD_latch_PC(.q(FD_PC), .d(PC), .clk(n_clock), .en(1'b1), .clr(reset));
+
+    wire[31:0] F_instruction;
+
+    mux_2 FD_latch_mux(.out(F_instruction), .select(isBranchTaken), .in0(q_imem), .in1(32'b0)); 
 
     //storing instruction in latch
-    single_reg FD_latch_Instruction(.q(FD_Instruction), .d(q_imem), .clk(n_clock), .en(1'b1), .clr(reset)); 
+    single_reg FD_latch_Instruction(.q(FD_Instruction), .d(F_instruction), .clk(n_clock), .en(1'b1), .clr(reset)); 
     
 //---------- [FD Latch] ----------
 
@@ -131,9 +139,10 @@ module processor(
     splitInstruction FD_split(.instruction(FD_Instruction), .opcode(opcode), .operand(operand), .rd(rd), .rs(rs), .rt(rt), .shamt(shamt), .alu_op(alu_op), .immidiate(immidiate), .target(target));
     
     // 2. Controller to set which MUXes to use
-    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt;
+    wire regWE, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt, ctrl_bex, ctrl_setx, rstatus_update;
+    wire[1:0] rstatus_inst;
     wire[4:0] alu_op_modified;
-    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd), .ctrl_bne(ctrl_bne), .jal_write(jal_write), .jr_PC_update(jr_PC_update), .ctrl_blt(ctrl_blt)); // <--------- need to add controls
+    controller allTheMuxes(.opcode(opcode), .alu_op_input(alu_op), .alu_op_modified(alu_op_modified), .regWriteEnable(regWE), .ALUinIMM(ALUinIMM), .RAM_WE(RAM_WE), .RAM_rd_write(RAM_rd_write), .read_from_RAM(read_from_RAM), .jump_direct(jump_direct), .read_rd(read_rd), .ctrl_bne(ctrl_bne), .jal_write(jal_write), .jr_PC_update(jr_PC_update), .ctrl_blt(ctrl_blt), .ctrl_bex(ctrl_bex), .ctrl_setx(ctrl_setx), .rstatus_update(rstatus_update), .rstatus_inst(rstatus_inst)); // <--------- need to add controls
 
     //NOTE: need to pass in alu_op into controller because when addi, want to do add alu_op
     //but alu_op is taken over by imm there therefore it's wrong if unchanged.
@@ -148,7 +157,12 @@ module processor(
     // assign regWriteData = MW_regWriteData; // <---------------------- check this control signal
     
     assign ctrl_writeEnable = regWriteEnable; //In writeback stage
-    assign ctrl_readRegA = rs; // current rgeA to read from
+
+    wire[4:0] regA_to_read;
+
+    assign regA_to_read = (ctrl_bex) ? 5'b11110 : rs; // current rgeA to read from
+
+    assign ctrl_readRegA = regA_to_read; // current rgeA to read from
 
     wire[31:0] regB_to_read_32; //choosing whether to read from rt or rd
     wire[31:0] rt_32, rd_32;
@@ -171,6 +185,10 @@ module processor(
     assign value_rs = data_readRegA;
     assign value_rt = data_readRegB;
 
+    wire[31:0] latch_value_rt;
+    mux_2 latch_rt_mux(.out(latch_value_rt), .select(ctrl_bex), .in0(value_rt), .in1(32'b0));
+
+
 //---------- Decode ----------
 
 
@@ -187,7 +205,7 @@ module processor(
 
     //storing regBData in latch
     wire[31:0] DX_rt_data; // can contain rt data is read_rd is true (which it is in case of bne)
-    single_reg DX_latch_regBData(.q(DX_rt_data), .d(value_rt), .clk(n_clock), .en(1'b1), .clr(reset)); 
+    single_reg DX_latch_regBData(.q(DX_rt_data), .d(latch_value_rt), .clk(n_clock), .en(1'b1), .clr(reset)); 
 
     //storing immidiate in latch
     wire[31:0] DX_immidiate;
@@ -218,8 +236,15 @@ module processor(
     assign controller_controls[21] = jal_write; //jump and link write
     assign controller_controls[22] = jr_PC_update; //jump register PC update
     assign controller_controls[23] = ctrl_blt; //branch less than
+    assign controller_controls[24] = ctrl_setx; //setx
+    assign controller_controls[25] = ctrl_bex; //branch exception
+    assign controller_controls[26] = rstatus_update; //rstatus update
+    assign controller_controls[28:27] = rstatus_inst; //rstatus instruction
 
-    single_reg DX_latch_controls(.q(DX_controls), .d(controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
+    wire[31:0] D_controller_controls;
+    mux_2 FD_latch_mux_2(.out(D_controller_controls), .select(isBranchTaken), .in0(controller_controls), .in1(32'b0)); 
+
+    single_reg DX_latch_controls(.q(DX_controls), .d(D_controller_controls), .clk(n_clock), .en(1'b1), .clr(reset));
 
 //---------- [DX Latch] ----------
 
@@ -253,6 +278,9 @@ module processor(
     wire[31:0] ALU_or_jal;
     mux_2 jal_mux(.out(ALU_or_jal), .select(DX_controls[21]), .in0(ALU_output), .in1(DX_PC_plus_one));
 
+    wire[31:0] ALU_jal_or_T;
+    mux_2 Tea_mux(.out(ALU_jal_or_T), .select(DX_controls[24]), .in0(ALU_or_jal), .in1(DX_target));
+
 
     //address for jump
     wire[31:0] jump_address;
@@ -274,7 +302,7 @@ module processor(
 
     // this is equivalent of O
     wire[31:0] XM_ALU_output;
-    single_reg XM_latch_DataWriteLocation(.q(XM_ALU_output), .d(ALU_or_jal), .clk(n_clock), .en(1'b1), .clr(reset));
+    single_reg XM_latch_DataWriteLocation(.q(XM_ALU_output), .d(ALU_jal_or_T), .clk(n_clock), .en(1'b1), .clr(reset));
 
     // this is equivalent of B
     wire[31:0] XM_rt_data;
@@ -341,13 +369,24 @@ module processor(
     // wire regWriteEnable;
 
     //control signal below, for now always write data from ALU
-    mux_2 regWriteDataMux(.out(regWriteData), .select(MW_controls[19]), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
+    wire[31:0] regWriteData_1;
+    mux_2 regWriteDataMux(.out(regWriteData_1), .select(MW_controls[19]), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
+
+    wire[1:0] sel_rstatus;
+    assign sel_rstatus[0] = MW_controls[27] & MW_controls[31];
+    assign sel_rstatus[1] = MW_controls[28] & MW_controls[31];
+
+    mux_4 regWriteDataMux22(.out(regWriteData), .select(sel_rstatus), .in0(regWriteData_1), .in1(32'b1), .in2(32'b00000000000000000000000000000010), .in3(32'b00000000000000000000000000000011));
+
     // mux_2 regWriteDataMux(.out(regWriteData), .select(1'b0), .in0(MW_ALU_output), .in1(MW_RAM_data_out));
 
     // write to destination register
     // assign regWriteID = MW_controls[16:12]; //destination register
 
-    assign regWriteID = (MW_controls[21]) ? 5'b11111 : MW_controls[16:12];
+    wire[4:0] regWriteID_1;
+    assign regWriteID_1 = (MW_controls[21]) ? 5'b11111 : MW_controls[16:12];
+
+    assign regWriteID = ((MW_controls[24])|(MW_controls[26] & MW_controls[31])) ? 5'b11110 : regWriteID_1;
 
     // enable register write
     assign regWriteEnable = MW_controls[0]; //register write enable

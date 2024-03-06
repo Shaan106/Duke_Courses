@@ -1,4 +1,4 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt, ctrl_bex, ctrl_setx, rstatus_update, rstatus_inst);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -14,6 +14,10 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output jal_write;
     output jr_PC_update;
     output ctrl_blt;
+    output ctrl_bex;
+    output ctrl_setx;
+    output rstatus_update;
+    output[1:0] rstatus_inst;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -39,6 +43,27 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     wire[31:0] operationSelected;
 
     decoder32 decoder(.out(operationSelected), .select(opcode), .enable(1'b1));
+
+    //finding out which ALU instruction was chosen
+    wire[31:0] ALUinst;
+    decoder32 ALUdecoder(.out(ALUinst), .select(alu_op_input), .enable(1'b1));
+    wire add;
+    assign add = ALUinst[0];
+    wire sub;
+    assign sub = ALUinst[1];
+    wire and_ALU;
+    assign and_ALU = ALUinst[2];
+    wire or_ALU;
+    assign or_ALU = ALUinst[3];
+    wire sll;
+    assign sll = ALUinst[4];
+    wire sra;
+    assign sra = ALUinst[5];
+    wire mul;
+    assign mul = ALUinst[6];
+    wire div;
+    assign div = ALUinst[7];
+
 
     wire ALU;
     assign ALU = operationSelected[0];
@@ -70,7 +95,7 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     //operationSelected[5] is addi
 
     // regfile write enable
-    assign regWriteEnable = ALU | addi | lw | jal; 
+    assign regWriteEnable = ALU | addi | lw | jal | setx; 
 
     // is ALU data B in immidiate wire
     assign ALUinIMM = addi | sw | lw;
@@ -101,6 +126,19 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
 
     // control for blt
     assign ctrl_blt = blt;
+
+    // control for bex
+    assign ctrl_bex = bex;
+
+    // control for setx
+    assign ctrl_setx = setx;
+
+    // control for rstatus update
+    assign rstatus_update = addi | (ALU & add) | (ALU & sub);
+
+    // control for rstatus instruction
+    assign rstatus_inst[1] = addi | (ALU & sub);
+    assign rstatus_inst[0] = (ALU & add) | (ALU & sub);
 
 
 endmodule
