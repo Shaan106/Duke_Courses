@@ -58,6 +58,6 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode, ctrl_shiftamt, data_res
 
     assign overflow = ctrl_ALUopcode[0] ? subtractorOverflow : adderOverflow;
 
-    mux_8 m1(.out(data_result), .select(ctrl_ALUopcode[2:0]), .in0(adderOutput), .in1(subtractorOutput), .in2(bitwiseAndOutput), .in3(bitwiseOrOutput), .in4(shiftLeftOutput), .in5(shiftRightOutput), .in6(bitwiseAndOutput), .in7(bitwiseAndOutput));
+    mux_8 m1(.out(data_result), .select(ctrl_ALUopcode[2:0]), .in0(adderOutput), .in1(subtractorOutput), .in2(bitwiseAndOutput), .in3(bitwiseOrOutput), .in4(shiftLeftOutput), .in5(shiftRightOutput), .in6(32'b0), .in7(32'b0));
 
 endmodule

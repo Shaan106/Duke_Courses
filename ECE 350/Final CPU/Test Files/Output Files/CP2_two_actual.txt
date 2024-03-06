@@ -60,22 +60,12 @@ Cycle 189: Wrote 0 into register 10
 Cycle 190: Wrote 0 into register 20
 Cycle 191: Wrote 0 into register 21
 Cycle 192: Wrote 0 into register 22
-Cycle 197: Wrote 1 into register 20
-Cycle 198: Wrote 1 into register 21
 Cycle 201: Wrote 1 into register 10
-Cycle 208: Wrote 2 into register 20
-Cycle 209: Wrote 2 into register 21
 Cycle 213: Wrote 2 into register 10
-Cycle 219: Wrote 3 into register 20
-Cycle 220: Wrote 3 into register 21
 Cycle 222: Wrote 252 into register 31
-Cycle 223: Wrote 4 into register 20
-Cycle 224: Wrote 4 into register 21
-Cycle 227: Wrote 5 into register 20
-Cycle 228: Wrote 5 into register 21
 Cycle 231: Wrote 15 into register 11
-Cycle 232: Wrote 5 into register 23
-Cycle 236: Wrote 10 into register 23
+Cycle 232: Wrote 0 into register 23
+Cycle 236: Wrote 0 into register 23
 Cycle 240: Wrote 0 into register 10
 Cycle 241: Wrote 0 into register 20
 Cycle 242: Wrote 0 into register 21
@@ -103,7 +93,7 @@ Reg 19:           0
 Reg 20:           0
 Reg 21:           0
 Reg 22:           0
-Reg 23:          10
+Reg 23:           0
 Reg 24:           0
 Reg 25:           0
 Reg 26:           0

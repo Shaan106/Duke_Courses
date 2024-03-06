@@ -3,6 +3,5 @@ Reg:  2 Expected:           0 Actual:           5
 Reg:  3 Expected:           0 Actual:          -4
 Reg:  4 Expected:           0 Actual:          -5
 Reg: 11 Expected:           0 Actual:          15
-Reg: 23 Expected:           0 Actual:          10
 Reg: 30 Expected:           0 Actual:          10
 Reg: 31 Expected:           0 Actual:         252

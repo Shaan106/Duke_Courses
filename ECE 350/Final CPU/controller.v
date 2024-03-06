@@ -1,4 +1,5 @@
-module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt, ctrl_bex, ctrl_setx, rstatus_update, rstatus_inst);
+module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIMM, RAM_WE, RAM_rd_write, read_from_RAM, jump_direct, 
+read_rd, ctrl_bne, jal_write, jr_PC_update, ctrl_blt, ctrl_bex, ctrl_setx, rstatus_update, rstatus_inst, mult_signal, div_signal);
 
     input [4:0] opcode;
     input [4:0] alu_op_input;
@@ -18,6 +19,8 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     output ctrl_setx;
     output rstatus_update;
     output[1:0] rstatus_inst;
+    output mult_signal;
+    output div_signal;
 
     //checking if opcode is all 0
     wire opcodeZero;
@@ -63,6 +66,12 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     assign mul = ALUinst[6];
     wire div;
     assign div = ALUinst[7];
+
+    // control for mult
+    assign mult_signal = ALU & mul;
+
+    // control for div
+    assign div_signal = ALU & div;
 
 
     wire ALU;
@@ -139,6 +148,7 @@ module controller(opcode, alu_op_input, alu_op_modified, regWriteEnable, ALUinIM
     // control for rstatus instruction
     assign rstatus_inst[1] = addi | (ALU & sub);
     assign rstatus_inst[0] = (ALU & add) | (ALU & sub);
+
 
 
 endmodule
