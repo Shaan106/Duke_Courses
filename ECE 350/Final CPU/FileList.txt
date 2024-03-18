@@ -2,6 +2,7 @@ RAM.v
 ROM.v
 Wrapper.v
 Wrapper_tb.v
+bypass_controller.v
 controller.v
 processor.v
 splitInstruction.v
