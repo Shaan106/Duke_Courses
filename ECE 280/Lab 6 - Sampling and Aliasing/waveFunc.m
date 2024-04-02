@@ -13,4 +13,6 @@ function [t, x] = generate_sinusoidal(f0, A, fs)
     T = 1/fs;            % Sampling period
     t = 0:T:0.01-T;      % Time vector from 0 to 10 ms
     x = A * sin(2 * pi * f0 * t);  % Sinusoidal signal
+
+    
 end
