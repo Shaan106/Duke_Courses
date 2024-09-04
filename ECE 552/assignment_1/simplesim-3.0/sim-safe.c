@@ -81,6 +81,11 @@ static struct mem_t *mem = NULL;
 /* track number of refs */
 static counter_t sim_num_refs = 0;
 
+/* track number of int, fp, mem insts*/
+static counter_t int_counter = 0;
+static counter_t fp_counter = 0;
+static counter_t mem_counter = 0;
+
 /* maximum number of inst's to execute */
 static unsigned int max_insts;
 
@@ -110,16 +115,35 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
   /* nada */
 }
 
+// define counts of mem access, integer operations, and floating point operations
+// set to 0 to start
+int mem_count = 0;
+int int_count = 0;
+int fp_count = 0;
+
+
 /* register simulator-specific statistics */
 void
 sim_reg_stats(struct stat_sdb_t *sdb)
 {
+  
   stat_reg_counter(sdb, "sim_num_insn",
 		   "total number of instructions executed",
 		   &sim_num_insn, sim_num_insn, NULL);
   stat_reg_counter(sdb, "sim_num_refs",
 		   "total number of loads and stores executed",
 		   &sim_num_refs, 0, NULL);
+
+  stat_reg_counter(sdb, "int_counter",
+		   "total number of int instructions executed",
+		   &int_counter, 0, NULL);
+  stat_reg_counter(sdb, "fp_counter",
+		   "total number of fp instructions executed",
+		   &fp_counter, 0, NULL);
+  stat_reg_counter(sdb, "mem_counter",
+		   "total number of mem instructions executed",
+		   &mem_counter, 0, NULL);
+
   stat_reg_int(sdb, "sim_elapsed_time",
 	       "total simulation time in seconds",
 	       &sim_elapsed_time, 0, NULL);
@@ -128,6 +152,9 @@ sim_reg_stats(struct stat_sdb_t *sdb)
 		   "sim_num_insn / sim_elapsed_time", NULL);
   ld_reg_stats(sdb);
   mem_reg_stats(mem, sdb);
+  // printf("mem_count: %d\n", mem_count);
+  // printf("int_count: %d\n", int_count);
+  // printf("fp_count: %d\n", fp_count);
 }
 
 /* initialize the simulator */
@@ -135,6 +162,9 @@ void
 sim_init(void)
 {
   sim_num_refs = 0;
+  int_counter = 0;
+  fp_counter = 0;
+  mem_counter = 0;
 
   /* allocate and initialize register file */
   regs_init(&regs);
@@ -259,6 +289,7 @@ sim_uninit(void)
 /* system call handler macro */
 #define SYSCALL(INST)	sys_syscall(&regs, mem_access, mem, INST, TRUE)
 
+
 /* start simulation, program loaded, processor precise state initialized */
 void
 sim_main(void)
@@ -290,6 +321,8 @@ sim_main(void)
       /* get the next instruction to execute */
       MD_FETCH_INST(inst, mem, regs.regs_PC);
 
+      // printf("inst: %x\n", inst);
+
       /* keep an instruction count */
       sim_num_insn++;
 
@@ -301,6 +334,33 @@ sim_main(void)
 
       /* decode the instruction */
       MD_SET_OPCODE(op, inst);
+
+      // printf("inst: %x\n", inst);
+      // printf("op: %d\n", op);
+
+      // want to print MD_OP_FLAGS(op)
+      // printf("MD_OP_FLAGS(op): %d\n", MD_OP_FLAGS(op));
+
+      // if MD_OP_FLAGS(op) is a memory operation, increment mem_count
+      // if MD_OP_FLAGS(op) == F_MEM, increment mem_count
+      if (MD_OP_FLAGS(op) == 0x00000001) {
+        int_count++;
+        // printf("\n\nmem_count: %d\n", mem_count);
+        // // MD_OP_FLAGS(op) & F_MEM
+        // printf("MD_OP_FLAGS(op) & F_MEM: %d\n", MD_OP_FLAGS(op) & F_MEM);
+        // // MD_OP_FLAGS(op) == F_MEM
+        // printf("MD_OP_FLAGS(op) == F_MEM: %d\n", (int)MD_OP_FLAGS(op) == (int)F_MEM);
+
+        // printf("MD_OP_FLAGS(op): %d\n", MD_OP_FLAGS(op));
+        // printf("F_MEM: %d\n\n", F_MEM);
+      } else if (MD_OP_FLAGS(op) == 0x00000002) {
+        fp_count++;
+        // printf("\n\nfp_count: %d\n", fp_count);
+      } else if (MD_OP_FLAGS(op) == 0x00000020) {
+        mem_count++;
+        // printf("\n\nmem_count: %d\n", mem_count);
+      }
+      
 
       /* execute the instruction */
       switch (op)
@@ -331,15 +391,28 @@ sim_main(void)
 	  if (MD_OP_FLAGS(op) & F_MEM)
 	    myfprintf(stderr, "  mem: 0x%08p", addr);
 	  fprintf(stderr, "\n");
+    
+    // printf("mem_count: %d\n", mem_count);
+    // printf("int_count: %d\n", int_count);
+    // printf("fp_count: %d\n", fp_count);
 	  /* fflush(stderr); */
 	}
 
       if (MD_OP_FLAGS(op) & F_MEM)
-	{
-	  sim_num_refs++;
-	  if (MD_OP_FLAGS(op) & F_STORE)
-	    is_write = TRUE;
-	}
+      {
+        sim_num_refs++;
+        if (MD_OP_FLAGS(op) & F_STORE)
+          is_write = TRUE;
+      }
+
+      if (MD_OP_FLAGS(op) & F_MEM)
+        mem_counter++;
+
+      if (MD_OP_FLAGS(op) & F_ICOMP)
+        int_counter++;
+
+      if (MD_OP_FLAGS(op) & F_FCOMP)
+        fp_counter++;
 
       /* check for DLite debugger entry condition */
       if (dlite_check_break(regs.regs_NPC,
@@ -352,7 +425,22 @@ sim_main(void)
       regs.regs_NPC += sizeof(md_inst_t);
 
       /* finish early? */
-      if (max_insts && sim_num_insn >= max_insts)
-	return;
+      if (max_insts && sim_num_insn >= max_insts) {
+          return;
+      }
+
+      // if (sim_num_insn == 20) {
+      // printf("mem_count: %d\n", mem_count);
+      // printf("int_count: %d\n", int_count);
+      // printf("fp_count: %d\n", fp_count);
+      // }
+      
     }
+
+    // print to console the counts of mem access, integer operations, and floating point operations
+    printf("mem_count: %d\n", mem_count);
+    printf("int_count: %d\n", int_count);
+    printf("fp_count: %d\n", fp_count);
+
+    // printf("mem_count: %d\n", mem_count);
 }
