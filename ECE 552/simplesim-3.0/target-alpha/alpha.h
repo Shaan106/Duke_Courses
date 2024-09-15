@@ -294,7 +294,7 @@ extern char *md_fu2name[];
 extern unsigned int md_op2flags[];
 
 
-/* integer register specifiers */
+/* integer register specifiers */ /* TAG */
 #define RA		((inst >> 21) & 0x1f)		/* reg source #1 */
 #define RB		((inst >> 16) & 0x1f)		/* reg source #2 */
 #define RC		(inst & 0x1f)			/* reg dest */

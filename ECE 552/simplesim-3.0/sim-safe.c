@@ -81,6 +81,28 @@ static struct mem_t *mem = NULL;
 /* track number of refs */
 static counter_t sim_num_refs = 0;
 
+/* ------------------- assn 2 ------------------- */
+/* cycle_counter for 3widesuperscalar*/
+static counter_t cycle_counter_3widesuperscalar = 0;
+int src_reg1_lane1, src_reg2_lane1, dest_reg_lane1;
+int src_reg1_lane2, src_reg2_lane2, dest_reg_lane2;
+int src_reg1_lane3, src_reg2_lane3, dest_reg_lane3;
+int stall_current_cycle = 0;
+static counter_t ovr_stalls = 0;
+static counter_t lane2_stalls = 0;
+static counter_t lane3_stalls = 0;
+static counter_t cycles_3widesuperscalar_RAW = 0;
+
+int mem_in_use_lane1, mem_in_use_lane2, mem_in_use_lane3;
+static counter_t lane2_cache_stalls = 0;
+static counter_t lane3_cache_stalls = 0;
+static counter_t cycles_3widesuperscalar_mem = 0;
+
+static counter_t branches_taken = 0;
+static counter_t branches_penalty = 0;
+static counter_t cycles_3widesuperscalar_cond = 0;
+/* ------------------- assn 2 ------------------- */
+
 /* track number of int, fp, mem insts*/
 static counter_t int_counter = 0;
 static counter_t fp_counter = 0;
@@ -130,16 +152,61 @@ sim_reg_stats(struct stat_sdb_t *sdb)
   stat_reg_counter(sdb, "sim_num_insn",
 		   "total number of instructions executed",
 		   &sim_num_insn, sim_num_insn, NULL);
-  stat_reg_counter(sdb, "sim_num_refs",
-		   "total number of loads and stores executed",
-		   &sim_num_refs, 0, NULL);
+    
+  // stat_reg_counter(sdb, "sim_num_refs",
+	// 	   "total number of loads and stores executed",
+	// 	   &sim_num_refs, 0, NULL);
 
-  stat_reg_counter(sdb, "int_counter",
-		   "total number of int instructions executed",
-		   &int_counter, 0, NULL);
-  stat_reg_counter(sdb, "fp_counter",
-		   "total number of fp instructions executed",
-		   &fp_counter, 0, NULL);
+  stat_reg_counter(sdb, "cycles_superscalar",
+		   "total number of insts executed in 3 wide superscalar, no hazards",
+		   &cycle_counter_3widesuperscalar, 0, NULL);
+  
+  stat_reg_counter(sdb, "lane2_stalls_RAW",
+        "total number of stalls in lane 2 due to RAW",
+        &lane2_stalls, 0, NULL);
+  
+  stat_reg_counter(sdb, "lane3_stalls_RAW",
+        "total number of stalls in lane 3 die to RAW",
+        &lane3_stalls, 0, NULL);
+
+  stat_reg_counter(sdb, "cycles_superscalar_RAW",
+        "total number of cycles with RAW hazards",
+        &cycles_3widesuperscalar_RAW, 0, NULL);
+
+  stat_reg_counter(sdb, "lane2_cache_stalls",
+        "total number of stalls in lane 2 due to cache port full",
+        &lane2_cache_stalls, 0, NULL);
+
+  stat_reg_counter(sdb, "lane3_cache_stalls",
+        "total number of stalls in lane 3 due to cache port full",
+        &lane3_cache_stalls, 0, NULL);
+
+  stat_reg_counter(sdb, "cycles_superscalar_mem",
+        "total number of cycles with RAW and cache port full hazards",
+        &cycles_3widesuperscalar_mem, 0, NULL);
+
+  stat_reg_counter(sdb, "branches_taken",
+        "total number of branches taken",
+        &branches_taken, 0, NULL);
+  
+  stat_reg_counter(sdb, "branches_penalty",
+        "total number of cycles due to branch penalty",
+        &branches_penalty, 0, NULL);
+
+  stat_reg_counter(sdb, "cycles_superscalar_cond",
+        "total number of cycles with RAW, cache port full, and branch penalty hazards",
+        &cycles_3widesuperscalar_cond, 0, NULL);
+
+  stat_reg_counter(sdb, "ovr_stalls",
+      "total number of stalls due to RAW and mem port hazards",
+      &ovr_stalls, 0, NULL);
+
+  // stat_reg_counter(sdb, "int_counter",
+	// 	   "total number of int instructions executed",
+	// 	   &int_counter, 0, NULL);
+  // stat_reg_counter(sdb, "fp_counter",
+	// 	   "total number of fp instructions executed",
+	// 	   &fp_counter, 0, NULL);
   stat_reg_counter(sdb, "mem_counter",
 		   "total number of mem instructions executed",
 		   &mem_counter, 0, NULL);
@@ -320,6 +387,7 @@ sim_main(void)
 
       /* get the next instruction to execute */
       MD_FETCH_INST(inst, mem, regs.regs_PC);
+      
 
       // printf("inst: %x\n", inst);
 
@@ -335,24 +403,93 @@ sim_main(void)
       /* decode the instruction */
       MD_SET_OPCODE(op, inst);
 
-      // printf("inst: %x\n", inst);
-      // printf("op: %d\n", op);
+      /* ------------------- assn 2 ------------------- */
+      /*3 wide super scalar inst count*/
+      cycle_counter_3widesuperscalar = (sim_num_insn / 3) + (sim_num_insn % 3);
 
-      // want to print MD_OP_FLAGS(op)
-      // printf("MD_OP_FLAGS(op): %d\n", MD_OP_FLAGS(op));
+      ovr_stalls = lane2_stalls + lane3_stalls + lane2_cache_stalls + lane3_cache_stalls;
 
-      // if MD_OP_FLAGS(op) is a memory operation, increment mem_count
-      // if MD_OP_FLAGS(op) == F_MEM, increment mem_count
+      cycles_3widesuperscalar_RAW = cycle_counter_3widesuperscalar + lane2_stalls + lane3_stalls;
+
+      cycles_3widesuperscalar_mem = cycle_counter_3widesuperscalar + lane2_stalls + lane3_stalls + lane2_cache_stalls + lane3_cache_stalls;
+      
+      cycles_3widesuperscalar_cond = cycle_counter_3widesuperscalar + lane2_stalls + lane3_stalls + lane2_cache_stalls + lane3_cache_stalls + branches_penalty;
+
+      if (sim_num_insn % 3 == 0) {
+        /* dependency checks, reset stall */
+        stall_current_cycle = 0;
+        mem_in_use_lane1 = 0;
+        
+        /* lane 1*/
+        src_reg1_lane1 = RA; // update current lane regs
+        src_reg2_lane1 = RB;
+        dest_reg_lane1 = RC;
+
+        /*cache port usage check*/
+        if (MD_OP_FLAGS(op) & F_MEM){
+          mem_in_use_lane1 = 1;
+        }
+
+      } else if (sim_num_insn % 3 == 1) {
+        /* check for data hazards */
+        if ((dest_reg_lane1 == RA || dest_reg_lane1 == RB)) {
+          stall_current_cycle = 1;
+        }
+        /* reset */
+        mem_in_use_lane2 = 0;
+
+        if ((stall_current_cycle == 0) && !(mem_in_use_lane1 == 1 && (MD_OP_FLAGS(op) & F_MEM))) {
+          /* lane 2*/
+          src_reg1_lane2 = RA; // update current lane regs
+          src_reg2_lane2 = RB;
+          dest_reg_lane2 = RC;
+          if (MD_OP_FLAGS(op) & F_MEM){
+            mem_in_use_lane2 = 1;
+          } else {
+            mem_in_use_lane2 = 0;
+          }
+        } else if (mem_in_use_lane1 == 1 && (MD_OP_FLAGS(op) & F_MEM)) {
+          /* stall */
+          lane2_cache_stalls++;
+        } else {
+          /* stall */
+          lane2_stalls++;
+        }
+       
+      } else if (sim_num_insn % 3 == 2) {
+        /* check for data hazards */
+        if ((dest_reg_lane1 == RA || dest_reg_lane1 == RB) || (dest_reg_lane2 == RA || dest_reg_lane2 == RB)) {
+          stall_current_cycle = 1;
+        }
+        /* reset */
+        mem_in_use_lane3 = 0;
+        /* lane 3*/
+        
+        if (stall_current_cycle == 0 && !((mem_in_use_lane1 == 1 && (MD_OP_FLAGS(op) & F_MEM)) || (mem_in_use_lane2 == 1 && (MD_OP_FLAGS(op) & F_MEM)))) {
+          src_reg1_lane3 = RA; // update current lane regs
+          src_reg2_lane3 = RB;
+          dest_reg_lane3 = RC;
+          if (MD_OP_FLAGS(op) & F_MEM){
+            mem_in_use_lane3 = 1;
+          } else {
+            mem_in_use_lane3 = 0;
+          }
+        } else if ((mem_in_use_lane1 == 1 && (MD_OP_FLAGS(op) & F_MEM)) || (mem_in_use_lane2 == 1 && (MD_OP_FLAGS(op) & F_MEM))) {
+          /* stall */
+          lane3_cache_stalls++;
+        } else {
+          /* stall */
+          lane3_stalls++;
+        }
+
+      }
+        
+      /* ------------------- assn 2 ------------------- */
+
+
       if (MD_OP_FLAGS(op) == 0x00000001) {
         int_count++;
-        // printf("\n\nmem_count: %d\n", mem_count);
-        // // MD_OP_FLAGS(op) & F_MEM
-        // printf("MD_OP_FLAGS(op) & F_MEM: %d\n", MD_OP_FLAGS(op) & F_MEM);
-        // // MD_OP_FLAGS(op) == F_MEM
-        // printf("MD_OP_FLAGS(op) == F_MEM: %d\n", (int)MD_OP_FLAGS(op) == (int)F_MEM);
 
-        // printf("MD_OP_FLAGS(op): %d\n", MD_OP_FLAGS(op));
-        // printf("F_MEM: %d\n\n", F_MEM);
       } else if (MD_OP_FLAGS(op) == 0x00000002) {
         fp_count++;
         // printf("\n\nfp_count: %d\n", fp_count);
@@ -401,8 +538,9 @@ sim_main(void)
       if (MD_OP_FLAGS(op) & F_MEM)
       {
         sim_num_refs++;
-        if (MD_OP_FLAGS(op) & F_STORE)
+        if (MD_OP_FLAGS(op) & F_STORE) {
           is_write = TRUE;
+        }
       }
 
       if (MD_OP_FLAGS(op) & F_MEM)
@@ -421,6 +559,14 @@ sim_main(void)
 	dlite_main(regs.regs_PC, regs.regs_NPC, sim_num_insn, &regs, mem);
 
       /* go to the next instruction */
+      /* ------------------- assn 2 ------------------- */
+
+      if ((regs.regs_NPC) != (regs.regs_PC + sizeof(md_inst_t))) {
+        branches_taken++;
+        branches_penalty = branches_penalty + 7;
+      }
+
+      /* ------------------- assn 2 ------------------- */
       regs.regs_PC = regs.regs_NPC;
       regs.regs_NPC += sizeof(md_inst_t);
 
@@ -428,12 +574,6 @@ sim_main(void)
       if (max_insts && sim_num_insn >= max_insts) {
           return;
       }
-
-      // if (sim_num_insn == 20) {
-      // printf("mem_count: %d\n", mem_count);
-      // printf("int_count: %d\n", int_count);
-      // printf("fp_count: %d\n", fp_count);
-      // }
       
     }
 
