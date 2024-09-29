@@ -153,53 +153,53 @@ sim_reg_stats(struct stat_sdb_t *sdb)
 		   "total number of instructions executed",
 		   &sim_num_insn, sim_num_insn, NULL);
     
-  // stat_reg_counter(sdb, "sim_num_refs",
-	// 	   "total number of loads and stores executed",
-	// 	   &sim_num_refs, 0, NULL);
+  stat_reg_counter(sdb, "sim_num_refs",
+		   "total number of loads and stores executed",
+		   &sim_num_refs, 0, NULL);
 
-  stat_reg_counter(sdb, "cycles_superscalar",
-		   "total number of insts executed in 3 wide superscalar, no hazards",
-		   &cycle_counter_3widesuperscalar, 0, NULL);
+  // stat_reg_counter(sdb, "cycles_superscalar",
+	// 	   "total number of insts executed in 3 wide superscalar, no hazards",
+	// 	   &cycle_counter_3widesuperscalar, 0, NULL);
   
-  stat_reg_counter(sdb, "lane2_stalls_RAW",
-        "total number of stalls in lane 2 due to RAW",
-        &lane2_stalls, 0, NULL);
+  // stat_reg_counter(sdb, "lane2_stalls_RAW",
+  //       "total number of stalls in lane 2 due to RAW",
+  //       &lane2_stalls, 0, NULL);
   
-  stat_reg_counter(sdb, "lane3_stalls_RAW",
-        "total number of stalls in lane 3 die to RAW",
-        &lane3_stalls, 0, NULL);
+  // stat_reg_counter(sdb, "lane3_stalls_RAW",
+  //       "total number of stalls in lane 3 die to RAW",
+  //       &lane3_stalls, 0, NULL);
 
-  stat_reg_counter(sdb, "cycles_superscalar_RAW",
-        "total number of cycles with RAW hazards",
-        &cycles_3widesuperscalar_RAW, 0, NULL);
+  // stat_reg_counter(sdb, "cycles_superscalar_RAW",
+  //       "total number of cycles with RAW hazards",
+  //       &cycles_3widesuperscalar_RAW, 0, NULL);
 
-  stat_reg_counter(sdb, "lane2_cache_stalls",
-        "total number of stalls in lane 2 due to cache port full",
-        &lane2_cache_stalls, 0, NULL);
+  // stat_reg_counter(sdb, "lane2_cache_stalls",
+  //       "total number of stalls in lane 2 due to cache port full",
+  //       &lane2_cache_stalls, 0, NULL);
 
-  stat_reg_counter(sdb, "lane3_cache_stalls",
-        "total number of stalls in lane 3 due to cache port full",
-        &lane3_cache_stalls, 0, NULL);
+  // stat_reg_counter(sdb, "lane3_cache_stalls",
+  //       "total number of stalls in lane 3 due to cache port full",
+  //       &lane3_cache_stalls, 0, NULL);
 
-  stat_reg_counter(sdb, "cycles_superscalar_mem",
-        "total number of cycles with RAW and cache port full hazards",
-        &cycles_3widesuperscalar_mem, 0, NULL);
+  // stat_reg_counter(sdb, "cycles_superscalar_mem",
+  //       "total number of cycles with RAW and cache port full hazards",
+  //       &cycles_3widesuperscalar_mem, 0, NULL);
 
-  stat_reg_counter(sdb, "branches_taken",
-        "total number of branches taken",
-        &branches_taken, 0, NULL);
+  // stat_reg_counter(sdb, "branches_taken",
+  //       "total number of branches taken",
+  //       &branches_taken, 0, NULL);
   
-  stat_reg_counter(sdb, "branches_penalty",
-        "total number of cycles due to branch penalty",
-        &branches_penalty, 0, NULL);
+  // stat_reg_counter(sdb, "branches_penalty",
+  //       "total number of cycles due to branch penalty",
+  //       &branches_penalty, 0, NULL);
 
-  stat_reg_counter(sdb, "cycles_superscalar_cond",
-        "total number of cycles with RAW, cache port full, and branch penalty hazards",
-        &cycles_3widesuperscalar_cond, 0, NULL);
+  // stat_reg_counter(sdb, "cycles_superscalar_cond",
+  //       "total number of cycles with RAW, cache port full, and branch penalty hazards",
+  //       &cycles_3widesuperscalar_cond, 0, NULL);
 
-  stat_reg_counter(sdb, "ovr_stalls",
-      "total number of stalls due to RAW and mem port hazards",
-      &ovr_stalls, 0, NULL);
+  // stat_reg_counter(sdb, "ovr_stalls",
+  //     "total number of stalls due to RAW and mem port hazards",
+  //     &ovr_stalls, 0, NULL);
 
   // stat_reg_counter(sdb, "int_counter",
 	// 	   "total number of int instructions executed",
