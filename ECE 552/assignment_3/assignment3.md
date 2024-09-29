@@ -445,4 +445,4 @@ Simulation time (from m5out/stats.txt):
 simSeconds       0.000082       # Number of seconds simulated (Second)
 ```
 
-Therefore, in order execution time is `0.000496` seconds and out of order execution time is `0.000082` "simulation seconds".
+Therefore, in order execution time is `0.000496` "simulation seconds" and out of order execution time is `0.000082` "simulation seconds".
