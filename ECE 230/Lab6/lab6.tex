@@ -1,0 +1,157 @@
+\documentclass[12pt]{article}
+
+%-------------PACKAGES-------------%
+\usepackage[letterpaper, margin=1.0in]{geometry} % page layout
+\usepackage[utf8]{inputenc} % input encoding
+\usepackage[T1]{fontenc}    % font encoding
+\usepackage{parskip}        % paragraph formatting
+\usepackage{fancyhdr}       % header formatting
+\usepackage{amsmath}        % math features
+\usepackage{mathtools}      % math formating
+\usepackage{amssymb}        % math symbols
+\usepackage{siunitx}        % SI units
+\usepackage{graphicx}       % images
+\usepackage{caption}        % captions
+\usepackage{multirow}       % combine rows in tables
+\usepackage{xcolor}         % colors
+\usepackage[american,straightlabels,nooldvoltagedirection]{circuitikz} % drawing circuit diagrams
+
+%-------------FORMAT-------------%
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.5mm}
+\renewcommand{\footrulewidth}{0.5mm}
+\setlength{\headheight}{14.5pt}
+
+\newcommand{\makeheader}[2]{ % Takes argument {Lab #}{Title}
+    \begin{center}
+    \textbf{\huge ECE 230L - \MakeUppercase{#1}}\\~\\
+    \textbf{\large \MakeUppercase{#2}}\\~\\
+    \rule{6.5in}{0.5mm}\\
+    \end{center}
+    
+    \fancyhead[L]{ECE230L}
+    \fancyhead[C]{}
+    \fancyhead[R]{Duke University}
+    \fancyfoot[L]{Lab Report}
+    \fancyfoot[C]{#1}
+    \fancyfoot[R]{Page \thepage}
+}
+
+\begin{document}
+%------Create header/footer------%
+\makeheader{Lab 6}{PSpice MOSFET Simulation}
+
+
+\setcounter{section}{1}
+\section{PSpice simulation of a MOSFET}
+
+\setcounter{subsection}{2}
+
+\subsection{Changing Netlist Parameters}
+
+\subsubsection{Simulating BS170 With Given ZETEX Parameters}
+
+\begin{itemize}    
+    \item[$\square$] Plot of the simulation results of $I_D$ vs. $V_{DS}$ for different $V_{GS}$ values.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\textwidth]{sim2-2_IM1D.png}
+        \caption{BS170 With ZETEX Parameters}
+        \label{fig:ZETEX}
+    \end{figure}
+\end{itemize}
+
+\subsubsection{Simulating Class Average BS170 Parameters}
+
+\begin{itemize}
+    \item[$\square$] Calculate the average class parameters. Make sure to remove any outliers when calculating the average. 
+    
+    $\lambda N$ = 0.054793 $1/V$
+
+    $K_N$ = 0.16457 $A/V^2$
+
+    $V_{TN}$ = 2.061 $V$
+
+    \item[$\square$] Plot of the simulation results of $I_D$ vs. $V_{DS}$ for different $V_{GS}$ values.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\textwidth]{sim2-3-2.png}
+        \caption{BS170 With Class Average Parameters}
+        \label{fig:Class}
+    \end{figure}
+\end{itemize}
+
+
+\subsubsection{Simulating Manufacturer Specified BS170 Parameters}
+
+\begin{itemize}    
+    \item[$\square$] Plot of the simulation results of $I_D$ vs. $V_{DS}$ for different $V_{GS}$ values.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\textwidth]{sim2-3-3.png}
+        \caption{BS170 With Manufacturer Parameters}
+        \label{fig:Manufacturer}
+    \end{figure}
+\end{itemize}
+
+\section{Exploration: Data Transmission Using Infrared Signals}
+
+\setcounter{subsection}{1}
+\subsection{Wireless Transmission and Reception}
+\begin{enumerate}
+\item[$\square$] \textbf{Take a photo} (or video!) of your wireless transmitter and receiver system at work! This will be turned in as part of your assignment for this week's lab.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{thing2.png}
+    \caption{Transmitter Receiver Circuit}
+    \label{fig:TxRx}
+\end{figure}
+
+
+\section{Questions}
+\begin{enumerate}
+\item Compare the values of threshold voltage, conduction parameter, and channel-length modulation parameters for the ZETEX manufacturer, class average measurement, and onsemi manufacturer (include percent difference).
+
+The \% difference is relative to the onsemi manufacturer.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    & $V_{TN}$ & $K_N$ & $\lambda N$ & \% Difference ($V_{TN}$) & \% Difference ($K_N$) \\ \hline
+    ZETEX & 1.824 & 0.1233 & 0 & 37.1 & 85.0 \\ \hline
+    Class Average & 2.061 & 0.16457 & 0.054793 & 28.9 & 79.9 \\ \hline
+    Onsemi & 2.9 & 0.82 & 0 & - & - \\ \hline
+    \end{tabular}
+\end{table}
+
+
+\item Comment on how these three parameters affect the PSpice simulated output plots.
+
+
+
+\item In lab, the LM 386 op-amp is used. In general, why are op-amps used in circuits? Examine the LM 386 datasheet on Canvas. In the case of the LM 386 specifically, what is the gain? Can this value be changed? If so, how? Also, what kinds of loads can this op-amp drive? 
+
+
+
+\item How can one improve the quality of the receiver circuit? Would placing a capacitor between power and ground improve or worsen the quality? Why?
+
+
+
+\item The optimal range of the audio device built is between \SI{20}{\hertz} and \SI{20}{\kilo\hertz}.  Why? Does the resistance of the potentiometer need to be adjusted based on whether we are in the lower range or upper range of that bound?
+
+
+
+\item What does it mean to change the volume? What does it mean to change the pitch? In our receiver circuit, what is one thing we could do to decrease the volume? In our transmitter circuit, what is a different thing we could do to decrease the volume?
+
+
+
+\end{enumerate}
+
+\section{Extension}
+\end{document}

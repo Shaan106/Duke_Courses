@@ -107,22 +107,176 @@
 \begin{enumerate}
 \item Give the definitions of the conduction parameter $K_N$ and the transconductance $g_m^\mathrm{sat}$ of the NMOSFET. Comment on their dependence on other NMOSFET parameters and bias voltages.
 
+The conduction parameter $K_N$ essentially represents how effectively the MOSFET can conduct at a given $V_{GS}$ and $V_{DS}$, it is defined as:
+
+$K_N = \frac{W \mu _n C_{ox}}{2L}$
+
+where $W$ is the width of the channel, $\mu _n$ is the electron mobility, $C_{ox}$ is the oxide capacitance, and $L$ is the length of the channel. 
+
+The transconductance $g_m^\mathrm{sat}$ is how sensitive the MOSFET current flow is to changes in the gate voltage. It is defined as:
+
+$g_m^\mathrm{sat} = \frac{\delta I_{D}}{\delta V_{GS}}$
+
+where $I_D$ is the drain current and $V_{GS}$ is the gate-source voltage.
 
 \item Give the definition of the NMOSFET channel-length-modulation parameter $\lambda$. Describe how it is extracted from the drain-current characteristics $I_D(V_{\mathrm{DS}}, V_{\mathrm{GS}})$.
 
+As \( V_{DS} \) increases while \( V_{GS} \) stays constant (with \( I_D \) in the saturation region), the effective length of the MOSFET’s inversion layer shortens due to a pinch-off effect, reducing by a small amount \( \Delta L \). This shortening causes the conduction parameter \( K_N \) to effectively increase since \( K_N \) is now defined as \( \frac{W \cdot \mu_n \cdot C_{ox}}{2 \cdot (L - \Delta L)} \). As the inversion layer gets pinched off more, \( K_N \) increases, and so does \( I_D \). 
+
+This increase in \( I_D \) with \( V_{DS} \) in saturation is due to the channel-length modulation effect, measured by the parameter \( \lambda_N \). Essentially, \( \lambda_N \) quantifies the slight increase in drain current as \( V_{DS} \) rises in the saturation region.
+
+To find \( \lambda_N \), pick two points in the saturation region on a plot of \( V_{DS} \) vs. \( I_D \) (with a constant \( V_{GS} > V_{T} \)), and use the formula:
+
+\[
+\lambda_N = \frac{(I_{D2} - I_{D1})}{(V_{DS2}I_{D1} - V_{DS1}I_{D2})}
+\]
+
+where 
+\( I_{Dn} \) is the drain current at each point \( n \), and
+\( V_{DSn} \) is the corresponding \( V_{DS} \) at each point. 
+
+This method captures how \( I_D \) changes with \( V_{DS} \) due to channel-length modulation.
 
 \item Plot the dependence of the drain current $I_{D}$ on the drain-to-source bias voltage $V_{\mathrm{DS}}$ for different values of the gate-to-source bias voltage $V_{\mathrm{GS}}$ on a linear-linear plot. Don't forget that what was measured in lab was $I_D(V_{\mathrm{DD}}, V_{\mathrm{GS}})$ and $V_{\mathrm{DS}}(V_{\mathrm{DD}}, V_{\mathrm{GS}})$. In order to plot $I_D(V_{\mathrm{DS}}, V_{\mathrm{GS}})$, you will need to do a substitution. (The only reason $V_{\mathrm{GS}}(V_{\mathrm{DD}}, V_{\mathrm{GG}})$ was measured was to show that $V_{\mathrm{GS}} = V_{\mathrm{GG}}$)
+
+Note: I was told to do $V_{gs}$ from 1.8V to 2.3V by Kip
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graph1.png}
+    \caption{dependence of the drain current $I_{D}$ on the drain-to-source bias voltage $V_{\mathrm{DS}}$}
+    \label{fig:graph1}
+\end{figure}
 
 
 \item Plot the dependence of $\sqrt{I_D}$ on the gate-to-source bias voltage $ V_{\mathrm{GS}}$ in the 0 to \SI{6}{\volt} range for a fixed value of the drain-to-source bias voltage $V_{\mathrm{DS}}$ equal to \SI{3}{\volt}.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graph3.png}
+    \caption{dependence of $\sqrt{I_D}$ on the gate-to-source bias voltage $ V_{\mathrm{GS}}$}
+    \label{fig:graph2}
+\end{figure}
 
 \item From the above plots, obtain the values of $K_N$, $V_T$, and $\lambda$. Include any additional plots or calculations used to obtain these parameters. Note that the parameter extraction guidelines give two methods for finding $K_N$. For any values where multiple different data sets can be used, remember to take several measurements and average the results. In a table, compare (\% error) your extracted values with the following expected values: $K_N=0.1233\frac{A}{V^2}$, $V_t=1.824V$, $\lambda=0.03V^{-1}$.
 
+$V_T$:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graph4.png}
+    \caption{$V_T$ extraction}
+    \label{fig:graph4}
+\end{figure}
+
+From the above graph, to get $V_T$, we find the x intercept of the line of best fit for the linear region of the graph.
+From my line of best fit I got a value of approximately 1.8V.
+
+\% error = $\frac{1.8 - 1.824}{1.824} \cdot 100 = 1.32\%$
+
+$K_N$:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graph1.png}
+    \caption{$V_T$ extraction}
+    \label{fig:graph5}
+\end{figure}
+
+To extract $K_N$, I first get the gradient ($ \delta I_{D} / \delta V_{GS} $) of the linear region of the graph of $I_{D}$ vs $V_{DS}$ for a fixed $V_{GS}$ of 2.3V. 
+I then use the formula $\delta I_{D} / \delta V_{GS} = K_{N} \cdot (V_{GS} - V_{T})$ to find $K_{N}$.
+
+Using the calculated $V_T$ of 1.8V, and measured gradient of 0.08, we get a $K_N$ of about 0.16.
+
+\% error = $\frac{0.16 - 0.1233}{0.1233} \cdot 100 = 29.7\%$
+
+$\lambda _N$:
+
+For calculating $\lambda _N$, I first identified the saturation region, which seems to begin at around 1.2V for $V_{GS}$ = 2.2V.
+
+Then I calculated the gradient of that region, with my chosen points being:
+
+$V_{DS1} = 5.8V$, $I_{D1} = 8.54E-03A$
+
+$V_{DS2} = 2.6V$, $I_{D2} = 8.01E-03A$
+
+Then plugging these values into the formula:
+
+$\lambda _N = \frac{(8.01E-03 - 8.54E-03)}{(2.6 \cdot 8.54E-03 - 5.8 \cdot 8.01E-03)} = 0.022$
+
+\% error = $\frac{0.022 - 0.03}{0.03} \cdot 100 = 26.6\%$
 
 \item What are the major sources of error in the values of the extracted parameters? How can these errors be effectively reduced?
+
+For determining \( V_{TN} \), one potential source of error comes from the \( \sqrt{I_D} \) vs. \( V_{GS} \) plot. When all \( V_{GS} \) values are included, the graph bends toward zero rather than approaching it directly, since even in the subthreshold region, the MOSFET still conducts some current. Including these subthreshold values in the regression lowers the slope and shifts the \( V_{GS} \) intercept, introducing error. To minimize this, we could limit the data to points clearly beyond the subthreshold region, though this would increase data uncertainty.
+
+For \( K_N \) and \( \lambda_N \) extraction, similar issues arise. Calculating \( K_N \) involves \( \Delta I_D / \Delta V_{DS} \) in the linear region. We estimated this slope using only two points, but these points might not accurately represent the trend due to natural data variability, making the \( K_N \) calculation highly sensitive to any small measurement errors at those points. Similarly, finding \( \lambda_N \) requires detecting a small change in current in the saturation region, which is challenging due to potential inaccuracies in each current reading, leading to larger relative errors in \( \lambda_N \). A possible improvement would be to use more data points in each region to refine the calculation.
+
+Another likely source of error is the use of the manufacturer’s data sheet for the graphs used to estimate \( K_N \) and \( \lambda_N \). The data sheet’s graphs had limited resolution, making it hard to accurately determine values due to widely spaced axis ticks. This imprecision likely introduced error in our expected values. Contacting the manufacturer for higher-precision data could help in achieving more accurate calculations.
+
 \end{enumerate}
 
 \section{Extension}
+
+OpAmp:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{opamp2.png}
+    \caption{OpAmp diagrams}
+    \label{fig:opamp}
+\end{figure}
+
+An op-amp (aka operational amplifier) is a device that amplifies the voltage difference between its non-inverting 
+(\( V^+ \)) and inverting (\( V^- \)) inputs. 
+It has high gain, high input impedance, and low output impedance. 
+It's useful for applications in amplification and signal processing.
+
+When inverting:
+
+- The input \( V_{in} \) connects to the inverting input (\( V^- \)) through resistor \( R_{in} \).
+
+- The non-inverting input (\( V^+ \)) is grounded.
+
+- A feedback resistor \( R_f \) connects the output \( V_{out} \) to the inverting input.
+
+Derivation
+
+1. \( V^- \approx V^+ = 0 \) (ground).
+2. KCL at \( V^- \):
+   \[
+   \frac{V_{in} - 0}{R_{in}} = \frac{0 - V_{out}}{R_f}
+   \]
+3. Rearrange to solve for \( V_{out} \):
+   \[
+   V_{out} = -\frac{R_f}{R_{in}} V_{in}
+   \]
+
+The negative sign means an inversion, so the output is an amplified inverted version of the input.
+
+Non-Inverting Op-Amp
+
+When non-inverting:
+
+- The input \( V_{in} \) is applied directly to the non-inverting input (\( V^+ \)).
+
+- The inverting input \( V^- \) is connected through a voltage divider formed by \( R_1 \) and \( R_f \).
+
+Derivation
+
+1. \( V^+ = V_{in} \) means we have \( V^- \approx V_{in} \) (high gain of op-amp).
+2. Voltage divider at \( V^- \):
+   \[
+   V_{in} = \frac{R_1}{R_1 + R_f} V_{out}
+   \]
+3. Rearrange for \( V_{out} \):
+   \[
+   V_{out} = \left(1 + \frac{R_f}{R_1}\right) V_{in}
+   \]
+
+The output is a non-inverted, amplified version of the input.
+
+These derivations show that the inverting op-amp gives an output of \( V_{out} = -\frac{R_f}{R_{in}} V_{in} \), 
+while the non-inverting op-amp provides \( V_{out} = \left(1 + \frac{R_f}{R_1}\right) V_{in} \).
 
 \end{document}
