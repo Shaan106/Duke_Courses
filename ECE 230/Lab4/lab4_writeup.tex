@@ -1,0 +1,206 @@
+\documentclass[12pt]{article}
+%-------------PACKAGES-------------%
+\usepackage[letterpaper, margin=1.0in]{geometry} % page layout
+\usepackage[utf8]{inputenc} % input encoding
+\usepackage[T1]{fontenc} % font encoding
+\usepackage{parskip} % paragraph formatting
+\usepackage{fancyhdr} % header formatting
+\usepackage{amsmath} % math features
+\usepackage{mathtools} % math formating
+\usepackage{amssymb} % math symbols
+\usepackage{siunitx} % SI units
+\usepackage{graphicx} % images
+\usepackage{caption} % captions
+\usepackage{multirow} % combine rows in tables
+\usepackage{xcolor} % colors
+\usepackage[american,straightlabels,nooldvoltagedirection]{circuitikz} % drawing circuit diagrams
+\usepackage{subcaption}
+%-------------FORMAT-------------%
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.5mm}
+\renewcommand{\footrulewidth}{0.5mm}
+\setlength{\headheight}{14.5pt}
+\newcommand{\makeheader}[2]{ % Takes argument {Lab #}{Title}
+\begin{center}
+\textbf{\huge ECE 230L - \MakeUppercase{#1}}\\~\\
+\textbf{\large \MakeUppercase{#2}}\\~\\
+\rule{6.5in}{0.5mm}\\
+\end{center}
+\fancyhead[L]{ECE230L}
+\fancyhead[C]{}
+\fancyhead[R]{Duke University}
+\fancyfoot[L]{Lab Report}
+\fancyfoot[C]{#1}
+\fancyfoot[R]{Page \thepage}
+}
+\begin{document}
+%------Create header/footer------%
+\makeheader{Lab 4}{PSPICE CIRCUIT SIMULATION}
+\setcounter{section}{3}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\section{DC Analysis in PSpice}
+$\square$ Take a screenshot of your circuit and plot.
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{dc_circuit.png}
+\caption{Circuit for DC Analysis}
+\end{figure}
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{dc_waveform.png}
+\caption{Result of DC Analysis.}
+\end{figure}
+\clearpage
+\section{AC Analysis in PSpice}
+$\square$ Take a screenshot of your circuit and plot.
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{ac_circuit.png}
+\caption{Circuit for AC Analysis}
+\end{figure}
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{ac_waveform.png}
+\caption{Result of AC Analysis}
+\end{figure}
+\clearpage
+\section{Transient Analysis in PSpice}
+$\square$ Take a screenshot of your circuit and plot.
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{transient_circuit.png}
+\caption{Circuit for Transient Analysis}
+\end{figure}
+\begin{figure}[ht!]
+\centering
+\begin{center}
+\includegraphics[width=0.9\textwidth]{transient_waveform.png}
+\end{center}
+\caption{Result of Transient Analysis}
+\end{figure}
+\clearpage
+\section{Practice Example}
+$\square$ Include a screenshot of the circuit for one of the analyses
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{example_circuit.png}
+\caption{Circuit for DC Analysis}
+\end{figure}
+
+$\square$ Include screenshots of the plots of voltage across the capacitor $C_1$ for all 3 of the analyses
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{example_dc_waveform.png}
+\caption{Result of DC Analysis.}
+\end{figure}
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{example_ac_waveform.png}
+\caption{Result of AC Analysis}
+\end{figure}
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.9\textwidth]{example_transient_waveform.png}
+\caption{Result of Transient Analysis.}
+\end{figure}
+\clearpage
+\section{Exploration: Th\'evenin Equivalent Circuits}
+\subsection{Example Exercise}
+In your report, include images of each PSpice circuit showing all voltages and
+currents
+\begin{itemize}
+\setlength\itemsep{-0.5em}
+\item[$\square$] The original circuit
+\item[$\square$] The open circuit
+\item[$\square$] The short circuit
+\item[$\square$] The Th\'evenin Equivalent circuit
+\end{itemize}
+\begin{figure}[ht!]
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{thev_a.png}
+\caption{Example Circuit}
+\end{center}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{thev_b.png}
+\caption{Open Circuit Voltage Schematic}
+\end{center}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{thev_c.png}
+\vspace{0.7cm}
+\caption{Short Circuit Voltage Schematic}
+\end{center}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{thev_d.png}
+\caption{Th\'evenin Equivalent Schematic}
+\end{center}
+\end{subfigure}
+\end{figure}
+$\square$ Show how you extracted $V_{OC}$ and $I_{SC}$ for the circuit
+
+Thevenin circuits work by replacing the original circuit with a voltage source $V_{TH}$ in series with a resistor $R_{TH}$. To find $V_{OC}$, we remove the load resistor and measure the voltage across the terminals. To find $I_{SC}$, we short the terminals and measure the current. In this case, $V_{OC} = 166.7mV$ and $I_{SC} = 588.2 \mu A$.
+
+$\square$ Show how you determined $R_{TH}$
+
+To find $R_{TH}$, we first remove all sources from the original circuit. We then find the resistance across the terminals. In this case, $R_{TH} = V_{OC}/I_{SC} = 166.7mV/588.2 \mu A = 283.3 \Omega$.
+
+\newpage
+\subsection{Challenge Exercise: Th\'evenin Equivalent Circuit}
+In your report, include images of each PSpice circuit showing all voltages and
+currents
+\begin{itemize}
+\setlength\itemsep{-0.5em}
+\item[$\square$] The original circuit
+\item[$\square$] The open circuit
+\item[$\square$] The short circuit
+\item[$\square$] The Th\'evenin Equivalent Circuit
+\end{itemize}
+\begin{figure}[ht!]
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{challenge_orig.png}
+\caption{Full Circuit}
+\end{center}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{challenge_open.png}
+\caption{Open Circuit Voltage Schematic}
+\end{center}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{challenge_closed.png}
+\vspace{0.7cm}
+\caption{Short Circuit Voltage Schematic}
+\end{center}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.5\textwidth}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{challenge_thev.png}
+\caption{Th\'evenin Equivalent Schematic}
+\end{center}
+\end{subfigure}
+\end{figure}
+$\square$ Show how you extracted $V_{OC}$ and $I_{SC}$ for the circuit
+
+Again, like before we remove the load resistor to find $V_{OC}$ and short the terminals to find $I_{SC}$. In this case, $V_{OC} = 909.1mV - 714.3mV = 194.8mV$ and $I_{SC} = 1.667mA - 833.3 \mu A = 833.3 \mu A$.
+
+
+$\square$ Show how you determined $R_{TH}$
+
+Again, we remove all sources from the original circuit and find the resistance across the terminals. In this case, $R_{TH} = V_{OC}/I_{SC} = 194.8mV/833.3 \mu A = 233.8 \Omega$.
+
+\end{document}
