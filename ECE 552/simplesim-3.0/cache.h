@@ -299,3 +299,9 @@ cache_flush_addr(struct cache_t *cp,	/* cache instance to flush */
 		 tick_t now);		/* time of cache flush */
 
 #endif /* CACHE_H */
+
+// create victim cache and access victim cache
+
+// pointer to parent cache from victim cache (parent is L1)
+
+// struct defines the victim cache
