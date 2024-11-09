@@ -424,6 +424,66 @@ mem_access_latency(int blk_sz)		/* block size accessed */
  * cache miss handlers
  */
 
+// /* l1 data cache l1 block miss handler function */
+// static unsigned int			/* latency of block access */
+// dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
+// 	      md_addr_t baddr,		/* block address to access */
+// 	      int bsize,		/* size of block to access */
+// 	      struct cache_blk_t *blk,	/* ptr to block in upper level */
+// 	      tick_t now)		/* time of access */
+// {
+//   unsigned int lat;
+
+//   if (cache_dl2)
+//     {
+//       /* access next level of data cache hierarchy */
+//       lat = cache_access(cache_dl2, cmd, baddr, NULL, bsize,
+// 			 /* now */now, /* pudata */NULL, /* repl addr */NULL);
+//       if (cmd == Read)
+// 	return lat;
+//       else
+// 	{
+// 	  /* FIXME: unlimited write buffers */
+// 	  return 0;
+// 	}
+//     }
+//   else
+//     {
+//       /* access main memory */
+//       if (cmd == Read)
+// 	return mem_access_latency(bsize);
+//       else
+// 	{
+// 	  /* FIXME: unlimited write buffers */
+// 	  return 0;
+// 	}
+//     }
+// }
+#define VICTIM_CACHE_SIZE 8  // Example size of the victim cache
+
+// Victim cache structure and initialization
+struct victim_cache_blk {
+    md_addr_t tag;  // Tag to identify the block
+    int valid;      // Valid bit to indicate if the block is holding valid data
+};
+
+struct victim_cache_blk victim_cache[VICTIM_CACHE_SIZE];
+int victim_cache_start = 0;  // FIFO replacement pointer
+int victim_cache_count = 0;  // Number of valid entries in victim cache
+
+// log2 function to calculate block size shift
+int int_log2(int n) {
+    if (n <= 0) {
+        fprintf(stderr, "Error: block size must be greater than zero.\n");
+        exit(1);
+    }
+    int log_val = 0;
+    while (n >>= 1) {
+        ++log_val;
+    }
+    return log_val;
+}
+
 /* l1 data cache l1 block miss handler function */
 static unsigned int			/* latency of block access */
 dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
@@ -432,33 +492,90 @@ dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
 	      struct cache_blk_t *blk,	/* ptr to block in upper level */
 	      tick_t now)		/* time of access */
 {
-  unsigned int lat;
+    unsigned int lat;
+    md_addr_t block_tag = baddr >> int_log2(bsize);
 
-  if (cache_dl2)
-    {
-      /* access next level of data cache hierarchy */
-      lat = cache_access(cache_dl2, cmd, baddr, NULL, bsize,
-			 /* now */now, /* pudata */NULL, /* repl addr */NULL);
-      if (cmd == Read)
-	return lat;
-      else
-	{
-	  /* FIXME: unlimited write buffers */
-	  return 0;
-	}
+    // Check if the block is in the victim cache
+    for (int i = 0; i < victim_cache_count; i++) {
+        int index = (victim_cache_start + i) % VICTIM_CACHE_SIZE;
+        if (victim_cache[index].valid && victim_cache[index].tag == block_tag) {
+            // Found the block in the victim cache
+            if (cmd == Read) {
+                // Move the block from victim cache back to L1D cache
+                victim_cache[index].valid = 0;  // Invalidate the victim cache entry
+                // Insert the block back into L1D cache (depends on your cache insertion logic)
+                // Assuming a function insert_into_L1D exists for reinsertion
+                // insert_into_L1D(block_tag, blk);
+                return 0; // Latency for a victim cache hit (customizable)
+            } else {
+                // FIXME: unlimited write buffers for writes
+                return 0;
+            }
+        }
     }
-  else
-    {
-      /* access main memory */
-      if (cmd == Read)
-	return mem_access_latency(bsize);
-      else
-	{
-	  /* FIXME: unlimited write buffers */
-	  return 0;
-	}
+
+    // If the block is not found in the victim cache, proceed with normal miss handling
+    md_addr_t evicted_baddr = 0;  // Placeholder to track the address of evicted block
+
+    if (cache_dl2) {
+        /* Access next level of data cache hierarchy */
+        lat = cache_access(cache_dl2, cmd, baddr, NULL, bsize,
+                           now, NULL, &evicted_baddr);
+
+        if (cmd == Read) {
+            // If a block is evicted from L1D, add it to the victim cache
+            if (evicted_baddr != 0) {
+                md_addr_t evicted_block_tag = evicted_baddr >> int_log2(bsize);
+
+                if (victim_cache_count < VICTIM_CACHE_SIZE) {
+                    // Add to next available slot in victim cache
+                    victim_cache[(victim_cache_start + victim_cache_count) % VICTIM_CACHE_SIZE].tag = evicted_block_tag;
+                    victim_cache[(victim_cache_start + victim_cache_count) % VICTIM_CACHE_SIZE].valid = 1;
+                    victim_cache_count++;
+                } else {
+                    // Victim cache is full, evict the oldest (FIFO)
+                    victim_cache[victim_cache_start].tag = evicted_block_tag;
+                    victim_cache[victim_cache_start].valid = 1;
+                    victim_cache_start = (victim_cache_start + 1) % VICTIM_CACHE_SIZE;
+                }
+            }
+
+            return lat;
+        } else {
+            // FIXME: unlimited write buffers
+            return 0;
+        }
+    } else {
+        /* Access main memory */
+        if (cmd == Read) {
+            lat = mem_access_latency(bsize);
+
+            // Handle main memory access and add evicted block to the victim cache if needed
+            if (evicted_baddr != 0) {
+                md_addr_t evicted_block_tag = evicted_baddr >> int_log2(bsize);
+
+                if (victim_cache_count < VICTIM_CACHE_SIZE) {
+                    // Add to next available slot in victim cache
+                    victim_cache[(victim_cache_start + victim_cache_count) % VICTIM_CACHE_SIZE].tag = evicted_block_tag;
+                    victim_cache[(victim_cache_start + victim_cache_count) % VICTIM_CACHE_SIZE].valid = 1;
+                    victim_cache_count++;
+                } else {
+                    // Victim cache is full, evict the oldest (FIFO)
+                    victim_cache[victim_cache_start].tag = evicted_block_tag;
+                    victim_cache[victim_cache_start].valid = 1;
+                    victim_cache_start = (victim_cache_start + 1) % VICTIM_CACHE_SIZE;
+                }
+            }
+
+            return lat;
+        } else {
+            // FIXME: unlimited write buffers
+            return 0;
+        }
     }
 }
+
+
 
 /* l2 data cache block miss handler function */
 static unsigned int			/* latency of block access */
