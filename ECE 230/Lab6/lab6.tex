@@ -133,25 +133,40 @@ The \% difference is relative to the onsemi manufacturer.
 
 \item Comment on how these three parameters affect the PSpice simulated output plots.
 
+- Higher $K_N$ increases the saturation current for a given $V_{GS}$. 
 
+- Higher $\lambda$ introduces a slope in the $I_D$ vs. $V_{DS}$ curve in saturation.
+
+- Higher $V_{TN}$ shifts the $I_D$ vs. $V_{DS}$ curves to require larger $V_{GS}$ values for conduction.
 
 \item In lab, the LM 386 op-amp is used. In general, why are op-amps used in circuits? Examine the LM 386 datasheet on Canvas. In the case of the LM 386 specifically, what is the gain? Can this value be changed? If so, how? Also, what kinds of loads can this op-amp drive? 
 
-
+Op-amps are commonly used to amplify weak signals and reduce noise in circuits. According to the LM 386 datasheet, the gain can range from 20 to 200. Specifically, connecting a capacitor between pins 1 and 8 bypasses the internal 1.35-kΩ resistor, increasing the gain to 200 (46 dB). For instance, using a 10 µF capacitor in this configuration results in a gain of 200. The gain can be adjusted by adding a resistor in series with the capacitor, allowing it to vary between 20 and 200. For example, a 1.2 kΩ resistor in series with the capacitor would set the gain to 50. Lower resistance values correspond to higher gain. Additionally, the datasheet specifies that the LM 386 can drive loads ranging from 4 Ω to 32 Ω.
 
 \item How can one improve the quality of the receiver circuit? Would placing a capacitor between power and ground improve or worsen the quality? Why?
 
-
+To enhance the performance of the receiver circuit, a capacitor can be placed between the power source and ground. This capacitor acts as a current reservoir, improving the circuit's quality. During moments of sudden current demand by the op-amp, the capacitor can quickly supply the required current, ensuring stability during transient conditions.
 
 \item The optimal range of the audio device built is between \SI{20}{\hertz} and \SI{20}{\kilo\hertz}.  Why? Does the resistance of the potentiometer need to be adjusted based on whether we are in the lower range or upper range of that bound?
 
+The audio range for human hearing is between 20 Hz and 20 kHz, which is why the device is designed to operate within this range. Frequencies above 20 kHz introduce high-frequency effects in the transistor, where the behavior of minority carriers is replaced by the expansion of the depletion zone, leading to signal distortion.
 
+The potentiometer's resistance does not need to be adjusted based on the frequency range. Its function is to control the amplitude of the signal, meaning it only affects the volume.
 
 \item What does it mean to change the volume? What does it mean to change the pitch? In our receiver circuit, what is one thing we could do to decrease the volume? In our transmitter circuit, what is a different thing we could do to decrease the volume?
 
+Adjusting the volume involves changing the signal's amplitude, with a higher amplitude resulting in louder sound. Altering the pitch corresponds to changing the signal's frequency, where higher frequencies produce a higher pitch. 
+
+In the receiver circuit, volume can be reduced by adding a resistor in series with the capacitor between pins 1 and 8. According to the datasheet, including a 1.2 kΩ resistor will decrease the gain from 200 to 50.
 
 
 \end{enumerate}
 
 \section{Extension}
+
+The conduction parameter, \( K_N \), has the greatest impact on the MOSFET curve in PSpice simulations. In the MOSFET \( I_D \)-\( V_{DS} \) output curve, \( K_N \) determines how much current flows for a given set of voltages. While \( V_T \) primarily influences the linear region and \( \lambda \) affects only the saturation region, \( K_N \) impacts the entire curve. 
+
+In practical circuit design, \( K_N \) plays a crucial role. Increasing \( K_N \) allows more current to flow through the channel for the same gate and drain voltage. For applications like amplifiers, as seen in the transmitter circuit, a higher \( K_N \) enables a larger amplitude signal for the same input. As engineers aim to develop more power-efficient transmitter circuits, optimizing \( K_N \) will remain a key consideration.
+
+
 \end{document}
