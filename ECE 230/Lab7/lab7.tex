@@ -1,0 +1,272 @@
+\documentclass[12pt]{article}
+
+%-------------PACKAGES-------------%
+\usepackage[letterpaper, margin=1.0in]{geometry} % page layout
+\usepackage[utf8]{inputenc} % input encoding
+\usepackage[T1]{fontenc}    % font encoding
+\usepackage{parskip}        % paragraph formatting
+\usepackage{fancyhdr}       % header formatting
+\usepackage{amsmath}        % math features
+\usepackage{mathtools}      % math formating
+\usepackage{amssymb}        % math symbols
+\usepackage{siunitx}        % SI units
+\usepackage{graphicx}       % images
+\usepackage{caption}        % captions
+\usepackage{multirow}       % combine rows in tables
+\usepackage{xcolor}         % colors
+\usepackage[american,straightlabels,nooldvoltagedirection]{circuitikz} % drawing circuit diagrams
+
+%-------------FORMAT-------------%
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.5mm}
+\renewcommand{\footrulewidth}{0.5mm}
+\setlength{\headheight}{14.5pt}
+
+\newcommand{\makeheader}[2]{ % Takes argument {Lab #}{Title}
+    \begin{center}
+    \textbf{\huge ECE 230L - \MakeUppercase{#1}}\\~\\
+    \textbf{\large \MakeUppercase{#2}}\\~\\
+    \rule{6.5in}{0.5mm}\\
+    \end{center}
+    
+    \fancyhead[L]{ECE230L}
+    \fancyhead[C]{}
+    \fancyhead[R]{Duke University}
+    \fancyfoot[L]{Lab Report}
+    \fancyfoot[C]{#1}
+    \fancyfoot[R]{Page \thepage}
+}
+
+\begin{document}
+%------Create header/footer------%
+\makeheader{Lab 7}{DISCRETE DIGITAL CIRCUITS}
+\setcounter{section}{1}
+
+\section{Discrete Diode Logic OR and AND Gates}
+\subsection{Diode OR Gate}
+\begin{enumerate}
+\item Measurements
+\begin{itemize}
+    \item[$\square$] Measure the value of the output voltage and use it to verify the truth table.
+
+
+
+    \item[$\square$] Measure the voltage drop across each diode, and note its effect on the output voltage.
+
+\begin{tabular}{|c|c|r|r|r|}
+\hline
+A (V) & B (V) & C (V)& Diode A Drop (V)& Diode B Drop (V)\\
+\hline
+0 & 0 & 0 & 0 & 0 \\
+0 & 5 & 4.42 & -4.42 & 0.58\\
+5 & 0 & 4.42 & 0.58 & -4.42 \\
+5 & 5 & 4.45 & 0.55 & 0.55 \\
+\hline
+\end{tabular}
+
+
+\end{itemize}
+\item Explanation
+\begin{itemize}
+    \item[$\square$] Explain in words how the Diode OR Gate operates.
+
+    The Diode OR gate operates by allowing current to flow through the output resistor if either input A or input B is high. 
+    If both inputs are low, the output voltage will be low as well.
+    When a diode is on there is a voltage drop across it, which is why the output voltage is not equal to the input voltage when one of the inputs is high. 
+    This also shows current flowing through that diode.
+
+\end{itemize}
+\end{enumerate}
+
+\subsection{Diode AND Gate}
+
+
+\begin{enumerate}
+\item Measurements
+\begin{itemize}
+    \item[$\square$] Measure the value of the output voltage and use it to verify the truth table.
+
+
+    
+    \item[$\square$] Measure the voltage drop across each diode, and note its effect on the output voltage.
+
+\begin{tabular}{|c|c|r|r|r|}
+\hline
+A (V) & B (V) & C (V)& Diode A Drop (V)& Diode B Drop (V)\\
+\hline
+0 & 0 & 0.35 & -0.35 & -0.35\\
+0 & 5 & 0.35 & -0.35 & 4.65 \\
+5 & 0 & 0.35 & 4.65 & -0.35 \\
+5 & 5 & 4.95 & 0.05 & 0.05 \\
+\hline
+\end{tabular}
+
+    
+\end{itemize}
+\item Explanation
+\begin{itemize}
+    \item[$\square$] Explain in words how the Diode AND gate operates.
+
+    The Diode AND gate operates by allowing current to flow through the output resistor only if both input A and input B are high.
+    If either input is low, the output voltage will be low as well.
+    When a diode is on there is a voltage drop across it, which is why the output voltage is not equal to the input voltage when one of the inputs is low.
+    The current flows through the diodes if either of the inputs are 0 instead of the output resistor.
+    Therefore the output resistor only has current flowing through it/voltage across it if both inputs are high (representing an and gate).
+
+    
+\end{itemize}
+\end{enumerate}
+
+\clearpage
+\section{Discrete MOS Inverter Circuit}
+\begin{enumerate}
+\item Measurements
+\begin{itemize}
+    \item[$\square$] Measure the value of the output voltage and use it to verify the truth table.
+
+\begin{tabular}{|c|c|}
+\hline
+A (V) & B (V) \\
+\hline
+0 & 4.89 \\
+5 & 0.04 \\
+\hline
+\end{tabular}
+
+    
+\end{itemize}
+\item LabView Measurements
+\begin{itemize}
+    \item [$\square$] Save your graph of $V_\mathrm{out}(V_\mathrm{in})$.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{graph1.png}
+    \caption{Inverter Static Voltage-Transfer Characteristics}
+    \label{fig:Static-Voltage-Transfer-Characteristics}
+\end{figure}
+
+    
+    \item [$\square$] Determine $V_\mathrm{OL}$ and $V_\mathrm{OH}$ from your $V_\mathrm{out}(V_\mathrm{in})$ curve.
+
+    $V_{OL} = 4.88 V, V_{OH} = 0.00004 V$
+    
+\end{itemize}
+\item Current and Power
+\begin{itemize}
+    \item[$\square$] Measure the static power-supply-current $I_\mathrm{DD}(V_\mathrm{in})$ for $V_\mathrm{in} = V_\mathrm{OL}$ and $V_\mathrm{in} = V_\mathrm{OH}$ (2 cases).
+
+\begin{tabular}{|c|c|}
+\hline
+$V_\mathrm{in}$ (V) & $I_\mathrm{DD}$ ($\mu$A) \\
+\hline
+4.88 & 21.35 \\
+0.00004 & 0.0001 \\
+\hline
+\end{tabular}
+
+    
+    \item[$\square$] Calculate the static power dissipation in this inverter for both $V_\mathrm{in} = V_\mathrm{OL}$ and $V_\mathrm{in} = V_\mathrm{OH}$. (2 cases) (Hint: $P = IV$).
+
+\begin{tabular}{|c|c|}
+\hline
+$V_\mathrm{in}$ (V) & $P$ ($\mu$W) \\
+\hline
+4.88 & 104.2 \\
+$4\cdot 10^{-5}$ & $4\cdot 10^{-9}$ \\
+\hline
+\end{tabular}
+
+    
+\end{itemize}
+\item Oscilloscope Measurements
+\begin{itemize}
+    \item[$\square$] Capture the oscilloscope screen showing both the input and output waveforms.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{twotwo.jpg}
+    \caption{Square Wave Through Inverter}
+    \label{fig:Square-Wave-Inverter}
+\end{figure}
+
+    \item[$\square$] Determine the high-to-low propagation delay ($t_\mathrm{p\cdot HL}$) and the low-to-high propagation delay ($t_\mathrm{p\cdot LH}$).
+
+    $t_{p\cdot LH} = 62 \mu s, t_{p\cdot HL} = 0.1 \mu s$
+
+    
+\end{itemize}
+\item Degraded Waveforms
+\begin{itemize}
+    \item[$\square$] At what frequency does the output waveform begin to degrade? Be as quantitative as possible.
+
+    $t_{p\cdot LH} = 62 \mu s$ means a frequency of $1/62\mu s = 16.13 kHz$. 
+    This is the frequency at which the output waveform would not have enough time to reach the high voltage level before the input switches back to low.
+    Therefore, the output waveform would begin to degrade at a frequency higher than 16.13 kHz.
+    
+    \item[$\square$] Capture the oscilloscope screen showing both the input and output waveforms where the output has begun to degrade.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{threethree.jpg}
+    \caption{Degraded Square Wave Through Inverter}
+    \label{fig:Degraded-Square-Wave-Inverter}
+\end{figure}
+
+    
+\end{itemize}
+\item Explanation
+\begin{itemize}
+    \item[$\square$] Explain in words how the discrete Inverter operates.
+
+    A discrete inverter works by using a transistor and a resistor to flip the input signal. When the input is high (logic 1), the transistor turns on, grounding the output to make it low (logic 0). When the input is low (logic 0), the transistor turns off, and the resistor pulls the output high (logic 1). It basically just switches the signal to the opposite state.
+    
+\end{itemize}
+\end{enumerate}
+
+\clearpage
+\section{Exploration}
+\subsection{Ring Oscillator}
+\begin{enumerate}
+\item Oscilloscope Measurements
+\begin{itemize}
+\item[$\square$] Save the oscilloscope image of the output waveform showing at least 4 periods.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{fourfour.jpg}
+    \caption{Ring Oscillator Waveform}
+    \label{fig:Ring-Oscillator-Waveform}
+\end{figure}
+
+
+\end{itemize}
+\item Period
+\begin{itemize}
+\item[$\square$] Measure the period of the ring oscillator output square wave.
+
+period is $62 \mu s$.
+
+\end{itemize}
+\item Transition Time
+\begin{itemize}
+\item[$\square$] Determine the transition time of one of the inverters.
+
+transition time is $\frac{62 \mu s}{3} = 20.67 \mu s$.
+
+\end{itemize}
+\item Explanation
+\begin{itemize}
+\item[$\square$] Explain how a ring oscillator works to create a signal without the need for any input.
+
+
+
+\end{itemize}
+\end{enumerate}
+
+
+\section{Extension}
+
+
+
+\end{document}
