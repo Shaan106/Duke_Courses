@@ -64,6 +64,9 @@ A (V) & B (V) & C (V)& Diode A Drop (V)& Diode B Drop (V)\\
 \hline
 \end{tabular}
 
+The table clearly shows that the output voltage is high when either input is high, and low when both inputs are low. 
+Therefore, this behaves as an OR gate (ie it fulfills the truth table for an OR gate).
+
 
 \end{itemize}
 \item Explanation
@@ -101,6 +104,9 @@ A (V) & B (V) & C (V)& Diode A Drop (V)& Diode B Drop (V)\\
 \hline
 \end{tabular}
 
+The table clearly shows that the output voltage is high only when both inputs are high, and low when either input is low.
+Therefore, this behaves as an AND gate (ie it fulfills the truth table for an AND gate).
+
     
 \end{itemize}
 \item Explanation
@@ -132,6 +138,9 @@ A (V) & B (V) \\
 5 & 0.04 \\
 \hline
 \end{tabular}
+
+The table clearly shows that the output voltage is high when the input is low, and low when the input is high.
+Therefore, this behaves as an inverter (ie it fulfills the truth table for an inverter).
 
     
 \end{itemize}
@@ -259,6 +268,7 @@ transition time is $\frac{62 \mu s}{3} = 20.67 \mu s$.
 \begin{itemize}
 \item[$\square$] Explain how a ring oscillator works to create a signal without the need for any input.
 
+A ring oscillator generates a periodic signal using a feedback loop of an odd number of inverting stages, such as NOT gates or inverters. The output of the last stage is fed back to the input of the first, creating a loop. Due to the propagation delay introduced by each stage, the signal cannot stabilize and continually toggles between high and low states. The oscillation frequency depends on the total delay in the loop, calculated as the inverse of twice the product of the number of stages and the delay per stage. This design operates without any external input because the feedback and inherent delays sustain the oscillation.
 
 
 \end{itemize}
@@ -267,6 +277,9 @@ transition time is $\frac{62 \mu s}{3} = 20.67 \mu s$.
 
 \section{Extension}
 
+When a button is pressed, it does not transition smoothly from off to on (or vice versa). Instead, the switch "bounces" rapidly between states due to mechanical and, less commonly, electrical effects. Mechanically, the kinetic energy from pressing the button causes the switch to bounce multiple times before settling. Electrically, an arc may form as the contacts close, briefly fluctuating the current and generating multiple on-off signals. This bouncing results in unintended multiple activations of the circuit.
+
+An SR latch effectively debounces a switch by requiring inputs from both states to change its output. When neither input is active, the latch retains its previous state, waiting for one input to stabilize before updating. The reset mechanism ensures that the output remains unchanged until a proper reset signal is applied, preventing errors caused by switch bouncing.
 
 
 \end{document}
